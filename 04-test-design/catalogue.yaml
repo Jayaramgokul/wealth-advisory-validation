@@ -1,0 +1,446 @@
+# Test catalogue: the source of truth.
+#
+# Each group reads one or more public sources as a lens on the system under
+# test. IDs, wording and tolerances are this repository's own. "Agreed
+# tolerance" means a bar the validator and the model owner fix in advance;
+# this repository does not prescribe one.
+#
+# Fields: id, name, risk, method, passes_if, nist (AI RMF subcategory),
+# hook (regulatory obligation), script (illustration in 05-illustrations, where one exists).
+# Each group's `doc` is its research write-up in 03-research, where one has been written.
+
+passes:
+- code: D
+  doc: data-fitness.md
+  lens: The data underneath the model
+  question: Is the data the model learned from, and is tested on, fit for the decisions it now makes?
+- code: P
+  lens: Portfolio risk and performance
+  doc: portfolio-risk-and-performance.md
+  question: Do the risk and return numbers shown to clients hold up when measured more than one way?
+- code: U
+  doc: decisions-under-uncertainty.md
+  lens: Placing clients under uncertainty
+  question: Does the model weigh the different costs of different mistakes, and know when to refer a client to
+    a human?
+- code: F
+  lens: Fair treatment of clients
+  doc: fair-treatment.md
+  question: Are clients treated alike when they should be, and are the fairness tests themselves well designed?
+- code: G
+  doc: groups-an-average-hides.md
+  lens: Groups an average can hide
+  question: Can a good average hide a group, or a combination of groups, that is badly served?
+- code: C
+  doc: conflicts-of-interest.md
+  lens: Conflicts of interest
+  question: Do own-brand products get recommended more than the client's interest justifies?
+- code: S
+  doc: statistical-rigour.md
+  lens: Statistical rigour
+  question: Are the reported numbers honest about variance, overfitting and multiple testing?
+- code: R
+  doc: shift-and-dependence.md
+  lens: Reliability when the world shifts
+  question: Which changes in clients, markets or the model itself would break the model, and would anyone notice?
+- code: O
+  doc: operation.md
+  lens: The model in operation
+  question: Is the chosen model justified against alternatives, and does it depend too much on one input?
+
+tests:
+- id: D1
+  name: Survivorship bias in backtest data
+  script: d1_survivorship_bias.py
+  risk: Backtests built only on assets that still exist look better than any investor could have achieved.
+  method: Rebuild the historical universe including delisted or failed assets and compare backtest results with
+    and without them.
+  passes_if: Results on the full universe stay within the agreed tolerance of the published ones; the universe definition
+    is documented.
+  nist: MEASURE 2.5
+  hook: Marketing Rule (hypothetical performance)
+- id: D2
+  name: Look-ahead bias and label leakage
+  script: d2_look_ahead_bias.py
+  risk: A feature uses information that was not available at decision time, so backtested skill is partly illusory.
+  method: Record the point-in-time availability of every feature; re-run the backtest with each feature lagged to
+    when it was really known.
+  passes_if: No material performance drop after point-in-time correction.
+  nist: MEASURE 2.5
+  hook: SEC IM Guidance 2017-02 (testing the algorithm)
+- id: D3
+  name: Input drift, not just output drift
+  script: d3_input_drift_psi.py
+  risk: The client population or market inputs move away from what the model was built on before outputs visibly
+    change.
+  method: Compare the live distribution of each key input (age, account size, questionnaire answers, asset mix)
+    with the reference snapshot using PSI or similar. (Population Stability Index; see Yurdakul 2018 on its statistical
+    properties.)
+  passes_if: Every key input is within the agreed drift band, or a drift alert has been raised and actioned.
+  nist: MEASURE 2.4
+  hook: Duty of care (ongoing monitoring)
+- id: D4
+  name: Correlation breakdown under stress
+  script: d4_stressed_correlation.py
+  risk: Diversification assumed from calm-market correlations disappears in a crash.
+  method: Recompute correlations over rolling and stress windows and re-run portfolio risk with stressed correlations.
+  passes_if: Each portfolio stays within its disclosed risk band under stressed correlations.
+  nist: MEASURE 2.6
+  hook: Duty of care (suitability)
+- id: D5
+  name: Out-of-distribution detection and abstention
+  risk: The model recommends assets or answers clients unlike anything in its data, with unearned confidence.
+  method: Define in-distribution criteria (history length, liquidity, profile ranges) and test that out-of-range
+    cases are flagged or declined.
+  passes_if: Out-of-range cases are flagged or routed to a human at the agreed rate.
+  nist: MEASURE 2.5
+  hook: Duty of care
+- id: D6
+  name: Baseline value-add
+  risk: The model adds complexity and cost without beating simple rules.
+  method: Compare against naive baselines (equal weight, a static balanced mix, a market-cap rule) on the same data.
+  passes_if: The model beats the baselines on risk-adjusted outcomes by a margin that survives resampling.
+  nist: MEASURE 2.13
+  hook: Duty of care (best interest)
+- id: D7
+  name: Label noise and rater agreement
+  script: d7_rater_agreement.py
+  risk: Training or evaluation labels (for example "suitable" or "risk tolerance") are inconsistent, so the model
+    learns noise.
+  method: Have independent raters re-label a sample; measure agreement (Cohen's or Fleiss' kappa).
+  passes_if: Agreement is above the agreed level for every label type.
+  nist: MEASURE 2.1
+  hook: SR 11-7 (data quality)
+- id: P1
+  name: Tail risk, three ways
+  script: p1_tail_risk_three_ways.py
+  risk: A portfolio's disclosed loss band understates how bad a bad year can be.
+  method: Estimate VaR and CVaR by historical simulation, a parametric model and Monte Carlo; compare them and the
+    disclosed band.
+  passes_if: The methods agree within tolerance and the worst estimate stays inside the disclosed band.
+  nist: MEASURE 2.5
+  hook: Disclosure; Marketing Rule (hypothetical performance)
+- id: P2
+  name: Risk-adjusted returns with intervals
+  script: p2_sharpe_sortino_intervals.py
+  risk: Portfolios are ranked on Sharpe or Sortino ratios whose differences are noise.
+  method: Bootstrap the Sharpe and Sortino ratios of each portfolio and compare intervals.
+  passes_if: Any claimed ranking holds across the bootstrap intervals.
+  nist: MEASURE 2.5
+  hook: Marketing Rule (fair and balanced performance)
+- id: P3
+  name: Volatility estimator sensitivity
+  script: p3_ewma_vs_sample_volatility.py
+  risk: The choice between an EWMA and an equal-weighted volatility estimate changes how much risk clients hold.
+  method: Run the same exposure rule with EWMA (lambda 0.94) and a one-year sample estimate; compare forecast error, band breaches and average exposure.
+  passes_if: Outcomes differ by less than the pre-agreed materiality, or the choice is documented and justified.
+  nist: MEASURE 2.5
+  hook: SR 11-7 (conceptual soundness)
+- id: P4
+  name: Sequence-of-returns risk for retirees
+  script: p4_sequence_of_returns.py
+  risk: Two retirees with identical average returns run out of money at different times because of the order of
+    returns.
+  method: Reorder the same historical returns many times and measure how often withdrawals deplete the portfolio.
+  passes_if: Depletion probability for decumulating clients is within the agreed limit and disclosed.
+  nist: MEASURE 2.6
+  hook: Duty of care; retirement accounts (DOL PTE 2020-02); senior investors
+- id: P5
+  name: Confidence intervals on risk metrics
+  script: p5_intervals_on_risk_metrics.py
+  risk: A disclosed drawdown or volatility band is a single estimate that could easily be worse.
+  method: Block bootstrap of returns to put intervals on each portfolio's risk metrics.
+  passes_if: The upper end of each interval stays inside the disclosed band, or the band is widened.
+  nist: MEASURE 2.5
+  hook: Disclosure (SEC IM Guidance 2017-02); Marketing Rule
+- id: U1
+  name: Asymmetric cost of mistakes
+  script: u1_cost_of_mistakes.py
+  risk: Placing a cautious client in an aggressive portfolio is treated as no worse than the reverse.
+  method: Agree a cost matrix for misplacements and report expected cost, not just accuracy.
+  passes_if: Expected cost is within the agreed limit and is the headline metric.
+  nist: MEASURE 2.6
+  hook: Duty of care (suitability)
+- id: U2
+  name: Abstain when unsure
+  script: u2_refer_when_unsure.py
+  risk: The model always answers, even when the client sits on a boundary where a wrong call is costly.
+  method: Use the model's probabilities and the cost matrix to define a refer-to-human region; measure how many
+    clients fall in it.
+  passes_if: A refer-to-human rule exists and borderline clients are routed to it.
+  nist: MANAGE 2.4
+  hook: Duty of care; FINRA 2165 (vulnerable clients)
+- id: U3
+  name: Dependence on protected attributes
+  risk: Outputs depend on a protected attribute in ways a comparison of averages does not reveal.
+  method: Mutual information between each output and each protected attribute, with intervals and multiple-testing
+    control.
+  passes_if: No significant dependence, or a documented explanation.
+  nist: MEASURE 2.11
+  hook: Fair treatment
+- id: U4
+  name: Intervals on individual recommendations
+  risk: '"Allocate 28% to equities" is presented as exact when the model is uncertain.'
+  method: Produce a predictive interval for each recommendation and check its calibration on held-out data.
+  passes_if: Intervals are calibrated and used downstream.
+  nist: MEASURE 2.9
+  hook: Disclosure
+- id: U5
+  name: Cost of committing to one model
+  risk: A single model was chosen when close alternatives disagree materially.
+  method: Compare candidate models' evidence and where their recommendations disagree.
+  passes_if: The choice is justified where alternatives are close.
+  nist: MEASURE 2.13
+  hook: SR 11-7 (conceptual soundness)
+- id: U6
+  name: Data-supported feature use
+  risk: The model relies on inputs the data does not support.
+  method: Refit with priors that switch off unsupported features (automatic relevance determination).
+  passes_if: Unsupported features are removed or justified.
+  nist: MEASURE 2.9
+  hook: SR 11-7
+- id: U7
+  name: Detecting a change in the client
+  risk: A client's situation changes but their risk profile stays fixed at onboarding.
+  method: Model clients as moving between hidden states and test detection on labelled examples.
+  passes_if: Changes are detected at the agreed rate with few false alarms.
+  nist: MEASURE 2.4
+  hook: Duty of care (monitoring)
+- id: U8
+  name: Proper scoring rules
+  script: u8_proper_scoring.py
+  risk: Probabilistic outputs are trained or judged on metrics that reward overconfidence.
+  method: Check that every probabilistic layer is trained and evaluated with a proper scoring rule (log loss, Brier).
+  passes_if: Proper scoring rules throughout; recalibration only as clean-up.
+  nist: MEASURE 2.5
+  hook: SR 11-7
+- id: F1
+  name: Counterfactual twin clients
+  script: f1_counterfactual_twins.py
+  risk: Changing a single protected attribute, with everything else fixed, changes the advice.
+  method: For each client, create twins that differ in one attribute only and compare recommendations.
+  passes_if: Twins receive the same recommendation, within tolerance.
+  nist: MEASURE 2.11
+  hook: Fair treatment
+- id: F2
+  name: Adverse impact with honest statistics
+  script: f2_adverse_impact_four_fifths.py
+  risk: Groups are treated differently, or a small group is declared fair when it is too small to tell.
+  method: Four-fifths rule plus a chi-square test with confidence intervals; flag groups too small for adequate
+    power.
+  passes_if: No group falls below four-fifths with significance; underpowered groups are flagged, not passed.
+  nist: MEASURE 2.11
+  hook: Fair treatment
+- id: F3
+  name: Intersectional disaggregation
+  script: f3_worst_group_intersectional.py
+  risk: Single-factor checks pass while a combination (older and small account, say) is badly served.
+  method: Pre-register a limited grid of factor combinations and report outcomes for each, with intervals and multiple-testing
+    control.
+  passes_if: Every populated cell is within tolerance or has a remediation plan.
+  nist: MEASURE 2.11
+  hook: Fair treatment; FINRA 2165 (senior investors)
+- id: F4
+  name: Adjusted disparity
+  script: f4_adjusted_disparity.py
+  risk: A raw gap between groups is driven by legitimate factors, or a real gap is hidden by them.
+  method: Report each disparity both raw and after controlling for pre-agreed legitimate factors.
+  passes_if: Both versions are reported side by side with intervals.
+  nist: MEASURE 2.11
+  hook: Fair treatment
+- id: F5
+  name: Measurement validity across groups
+  script: f5_questionnaire_reliability.py
+  risk: The risk questionnaire measures tolerance reliably for some groups and poorly for others.
+  method: Test-retest or internal-consistency reliability of the questionnaire per group.
+  passes_if: Reliability is similar across groups, or the difference is disclosed and addressed.
+  nist: MEASURE 2.11
+  hook: SEC IM Guidance 2017-02 (questionnaire design)
+- id: F6
+  name: Where in the pipeline does unfairness arise
+  risk: A disparity appears at the end but its source (questionnaire, scoring, portfolio, narration) is unknown.
+  method: Measure the same fairness metric after each stage of the pipeline.
+  passes_if: Each disparity is traced to a stage.
+  nist: MEASURE 2.11
+  hook: SR 11-7 (effective challenge)
+- id: F7
+  name: Confirmatory or exploratory
+  risk: Exploratory fairness checks are reported as if they were pre-planned pass/fail tests.
+  method: Classify every fairness test; confirmatory ones need a hypothesis written down before the data is seen.
+  passes_if: Every result is labelled, and confirmatory claims have a dated pre-registration.
+  nist: MEASURE 2.13
+  hook: SR 11-7 (documentation)
+- id: F8
+  name: Is the evaluation data fit for purpose
+  risk: Fairness conclusions rest on data with too few members of some groups or unknown origins.
+  method: A datasheet for every evaluation dataset; compare its composition with the live client base.
+  passes_if: Datasheets exist and gaps are stated.
+  nist: MEASURE 2.1
+  hook: SR 11-7 (data)
+- id: F9
+  name: Fairness on real usage
+  risk: Synthetic test clients miss how real clients interact.
+  method: Periodic disaggregated evaluation on consented production data, reconciled with lab results.
+  passes_if: Runs on schedule; differences from lab results are explained.
+  nist: MEASURE 2.3
+  hook: Duty of care (monitoring)
+- id: F10
+  name: When to bring in outside review
+  risk: Internal evaluators miss what an outsider would see.
+  method: Agree written triggers for independent outside review.
+  passes_if: Triggers are documented and followed.
+  nist: MEASURE 1.3
+  hook: SR 11-7 (independence)
+- id: G1
+  name: Worst group as co-headline
+  script: f3_worst_group_intersectional.py
+  risk: A strong average is reported while one group fares far worse.
+  method: 'Report the worst-performing group alongside every aggregate figure. (Built into F3: the worst cell is
+    reported beside the overall figure.)'
+  passes_if: Every aggregate has its worst group and gap beside it.
+  nist: MEASURE 2.11
+  hook: Fair treatment
+- id: G2
+  name: Direction of errors by group
+  script: g2_direction_of_errors.py
+  risk: Two groups have the same error rate but one is pushed too aggressive and the other too cautious.
+  method: A confusion matrix per group; compare over- and under-placement rates.
+  passes_if: No group's errors lean one way beyond tolerance.
+  nist: MEASURE 2.11
+  hook: Duty of care (suitability)
+- id: G3
+  name: Thresholds and who they affect
+  script: g3_threshold_sweep.py
+  risk: A cut-off between risk buckets or between answer and refusal treats groups differently.
+  method: Sweep each threshold and plot outcomes by group.
+  passes_if: The chosen threshold is justified against its subgroup impact.
+  nist: MEASURE 2.11
+  hook: Duty of care
+- id: G4
+  name: Disaggregated reporting standard
+  risk: Aggregate numbers reach governance and clients without any breakdown.
+  method: A written minimum breakdown (age band, account size, region, experience) for every reported metric.
+  passes_if: Audits find the standard followed.
+  nist: MEASURE 2.8
+  hook: Disclosure; SR 11-7
+- id: G5
+  name: Benchmark composition
+  risk: The validation set does not look like the client base, so results do not transfer.
+  method: Compare group shares in validation data with the live client base.
+  passes_if: Shares match within tolerance; small cells are documented.
+  nist: MEASURE 2.3
+  hook: SR 11-7 (data)
+- id: G6
+  name: Disparities without demographic data
+  risk: The firm does not collect protected attributes, so it cannot see disparities directly.
+  method: Use legally reviewed observable proxies to look for disparities.
+  passes_if: A reviewed proxy map exists and is tested routinely.
+  nist: MEASURE 2.11
+  hook: Fair treatment
+- id: C1
+  name: Proprietary product tilt
+  script: c1_proprietary_product_tilt.py
+  risk: The model favours own-brand funds over comparable cheaper options without adequate disclosure.
+  method: Compare the share of own-brand products recommended with a product-neutral benchmark, by client segment.
+  passes_if: No unexplained tilt; any tilt is disclosed specifically enough for informed consent.
+  nist: MEASURE 2.11
+  hook: Duty of loyalty (IA-5248); SEC order IA-5826 (SoFi Wealth, 2021)
+- id: S1
+  name: Nested cross-validation
+  script: s1_nested_cross_validation.py
+  risk: Features or thresholds chosen on the whole dataset make the cross-validated score look better than reality.
+  method: Re-run every data-driven choice inside the cross-validation folds and compare with the reported score.
+  passes_if: The reported performance is the nested number, or the gap is documented.
+  nist: MEASURE 2.5
+  hook: SR 11-7 (outcomes analysis)
+- id: S2
+  name: Multiple testing across the suite
+  script: s2_multiple_testing.py
+  script: f3_worst_group_intersectional.py
+  risk: Running hundreds of test slices produces failures by chance alone, and real ones get lost.
+  method: Collect every slice's p-value and control the false discovery rate (Benjamini-Hochberg).
+  passes_if: Every pass/fail statement is backed by the corrected table.
+  nist: MEASURE 2.13
+  hook: SR 11-7 (effective challenge)
+- id: S3
+  name: Feature-selection stability
+  script: s3_selection_stability.py
+  risk: The "top drivers" the firm discloses would change with slightly different data.
+  method: Bootstrap the feature-importance or selection step and measure how often each feature is chosen.
+  passes_if: Every disclosed driver is selected in at least the agreed share of resamples.
+  nist: MEASURE 2.9
+  hook: Disclosure of how the algorithm works
+- id: S4
+  name: Bias-variance decomposition
+  risk: A headline error rate hides whether the problem is a wrong model, an unstable one, or noise.
+  method: Refit on bootstrap resamples and split error into bias, variance and noise per risk bucket.
+  passes_if: The dominant error source is identified for every bucket that misses its target.
+  nist: MEASURE 2.5
+  hook: SR 11-7 (outcomes analysis)
+- id: S5
+  name: Effective complexity against data
+  risk: The system has more effective parameters than its data can support, so validation numbers are optimistic.
+  method: Estimate effective degrees of freedom per component and compare with the size of the validation data.
+  passes_if: The ratio is within the agreed limit, or a written justification exists.
+  nist: MEASURE 2.5
+  hook: SR 11-7 (conceptual soundness)
+- id: R1
+  name: Dependent data
+  script: r1_dependent_data.py
+  script: p5_intervals_on_risk_metrics.py
+  risk: Clients or days are not independent, so confidence intervals and p-values are too narrow.
+  method: 'Use clustered or block resampling and time-ordered validation. (Also used in P2 and P5: moving-block bootstrap
+    of daily returns.)'
+  passes_if: All reported intervals respect the dependence in the data.
+  nist: MEASURE 2.5
+  hook: SR 11-7
+- id: R2
+  name: Writing down which shifts matter
+  risk: The team cannot say which changes in the world would break the model.
+  method: Draw the causal diagram of the model's inputs and mark which relationships may change between environments.
+  passes_if: A reviewed diagram exists; outputs are stable on data spanning the identified shifts.
+  nist: MAP 2.3
+  hook: SR 11-7 (conceptual soundness)
+- id: R3
+  name: Transfer to a new environment
+  risk: A model validated on one market or channel performs worse in another.
+  method: Evaluate separately on each environment the model is used in.
+  passes_if: The gap between environments is within tolerance.
+  nist: MEASURE 2.3
+  hook: Duty of care
+- id: R4
+  name: Feedback loops
+  risk: The model's own recommendations reshape the data it will be retrained on.
+  method: Track recommendation and acceptance rates by group and asset class across versions.
+  passes_if: No unexplained self-reinforcing trend.
+  nist: MEASURE 3.1
+  hook: Duty of loyalty (conflicts)
+- id: R5
+  name: Wrong model shape
+  risk: The model's assumed form (linear, monotone, independent) is wrong in parts of the input space.
+  method: Compare against a flexible challenger region by region.
+  passes_if: No region shows misspecification beyond tolerance.
+  nist: MEASURE 2.5
+  hook: SR 11-7 (conceptual soundness)
+- id: O1
+  name: Single-feature dominance
+  script: o1_single_feature_dominance.py
+  risk: One input drives most decisions, so one bad data feed breaks the model.
+  method: Neutralise each input in turn and measure how much decisions change.
+  passes_if: No single input dominates beyond the agreed share.
+  nist: MEASURE 2.5
+  hook: SR 11-7
+- id: O2
+  name: Champion and challengers
+  risk: The chosen model was never compared with structurally different alternatives.
+  method: Train two different challengers on the same task and document why the champion wins.
+  passes_if: A signed comparison exists and is refreshed.
+  nist: MEASURE 2.13
+  hook: SR 11-7 (benchmarking)
+- id: O3
+  name: Shadow challenger
+  risk: A newer model would serve clients better but nobody checks.
+  method: Run a retrained challenger in shadow and compare continuously.
+  passes_if: Sustained outperformance is escalated within the agreed time.
+  nist: MEASURE 2.4
+  hook: SR 11-7 (ongoing monitoring)
