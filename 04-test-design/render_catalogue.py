@@ -50,7 +50,7 @@ def main() -> Path:
                          f"{t['nist']} | {t['hook']} |")
         lines.append("")
     out = HERE / "catalogue.md"
-    out.write_text("\n".join(lines) + "\n")
+    out.write_text("\n".join(lines).rstrip("\n") + "\n")
     return out
 
 
