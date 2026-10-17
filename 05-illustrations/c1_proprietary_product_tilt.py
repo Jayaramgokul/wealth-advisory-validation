@@ -37,7 +37,8 @@ def main():
         lo, hi = wilson(k, total)
         p = stats.binomtest(k, total, NEUTRAL_SHARE, alternative="greater").pvalue
         excess = (k / total - NEUTRAL_SHARE) * balance[m].sum() / total * SLEEVE * (IN_HOUSE_FEE - PEER_FEE)
-        print(f"{seg + " accounts":17s} {k / total:5.0%} (95% CI {lo:.0%} to {hi:.0%})   p = {p:.2g}   "
+        label = f"{seg} accounts"
+        print(f"{label:17s} {k / total:5.0%} (95% CI {lo:.0%} to {hi:.0%})   p = {p:.2g}   "
               f"extra fees about ${excess:,.0f} per client per year")
     print("\nWhat this shows: a conflict in automated advice can live in one rule that applies only to\n"
           "some clients, so the overall share can look modest. Compare with a neutral benchmark segment\n"
