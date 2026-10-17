@@ -10,7 +10,7 @@ Public documents only. Links checked October 2026.
 | SEC IM Guidance 2017-02 | SEC Division of Investment Management, *IM Guidance Update No. 2017-02: Robo-Advisers* | https://www.sec.gov/investment/im-guidance-2017-02.pdf |
 | FINRA digital advice | FINRA, *Report on Digital Investment Advice* (2016) | https://www.finra.org/sites/default/files/digital-investment-advice-report.pdf |
 | Marketing Rule | Advisers Act rule 206(4)-1 | https://www.ecfr.gov/current/title-17/chapter-II/part-275/section-275.206(4)-1 |
-| Model risk | Federal Reserve SR 11-7 / OCC Bulletin 2011-12, *Supervisory Guidance on Model Risk Management* | https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm |
+| Model risk | Federal Reserve, OCC and FDIC, SR 26-2, *Revised Guidance on Model Risk Management* (April 2026; supersedes SR 11-7; excludes generative and agentic AI) | https://www.federalreserve.gov/supervisionreg/srletters/SR2602.htm |
 | SoFi Wealth (2021) | SEC, *In the Matter of SoFi Wealth, LLC*, Release IA-5826 | https://www.sec.gov/enforcement-litigation/administrative-proceedings/ia-5826-s |
 | Exam priorities | SEC Division of Examinations, annual examination priorities | https://www.sec.gov/exams |
 | NIST AI RMF | NIST AI 100-1 (2023) | https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf |

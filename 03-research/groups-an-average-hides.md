@@ -120,7 +120,7 @@ reported to governance or clients. Pass if periodic audits find it followed.
 **Client harm.** Aggregates reach decision-makers without the breakdown that
 would show who is badly served.
 
-**Regulatory hook.** Disclosure; SR 11-7. **NIST AI RMF.** MEASURE 2.8.
+**Regulatory hook.** Disclosure; SR 26-2. **NIST AI RMF.** MEASURE 2.8.
 
 ### G5. Benchmark composition
 
@@ -134,7 +134,7 @@ tolerance and small cells are documented as such.
 **Client harm.** Validation results do not transfer to the clients actually
 served.
 
-**Regulatory hook.** SR 11-7 (data). **NIST AI RMF.** MEASURE 2.3. Related: F8.
+**Regulatory hook.** SR 26-2 (data selection, under conceptual soundness). **NIST AI RMF.** MEASURE 2.3. Related: F8.
 
 ### G6. Disparities without demographic data
 

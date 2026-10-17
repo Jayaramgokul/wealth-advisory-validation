@@ -25,7 +25,7 @@ an existing validation miss?* Each answer became a candidate test.
 | [Conflicts](../03-research/conflicts-of-interest.md) | SEC order against SoFi Wealth (2021); IA-5248 | Are own-brand products favoured? |
 | [Statistical rigour](../03-research/statistical-rigour.md) | Hastie, Tibshirani & Friedman; Benjamini & Hochberg; Meinshausen & Bühlmann | Are results honest about variance and multiple testing? |
 | [Shift and dependence](../03-research/shift-and-dependence.md) | Saria & Subbaswamy; Künsch | What changes would break the model, and are intervals valid for dependent data? |
-| [Operation](../03-research/operation.md) | WEF *Companion*; SR 11-7 | Is the model fragile to one input, and was it chosen over alternatives for good reason? |
+| [Operation](../03-research/operation.md) | WEF *Companion*; SR 26-2 | Is the model fragile to one input, and was it chosen over alternatives for good reason? |
 
 ## What every test entry contains
 

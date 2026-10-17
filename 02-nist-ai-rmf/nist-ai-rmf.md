@@ -5,10 +5,12 @@
 
 ## Why use it
 
-The regulations say what models used in advice must deliver for clients. SR 11-7 says
-how a model should be validated. Neither was written for a system that learns
-from data, adapts to the client and may explain itself in natural language.
-The NIST AI Risk Management Framework fills that space. It is voluntary, but
+The regulations say what models used in advice must deliver for clients.
+SR 26-2, which replaced SR 11-7 in April 2026, says how a model should be
+validated. Neither sets out how to evidence the properties now expected of AI
+systems, such as fairness, explainability and resilience, and SR 26-2 leaves
+generative and agentic AI out of scope altogether. The NIST AI Risk Management
+Framework fills that space. It is voluntary, but
 it gives a shared structure that compliance, model owners and validators can
 all work to.
 

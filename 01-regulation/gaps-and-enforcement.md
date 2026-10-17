@@ -38,9 +38,9 @@ validation.
 
 | Area | Public rules |
 |---|---|
-| Third-party and model-vendor risk | Interagency Guidance on Third-Party Relationships (2023); SR 11-7 |
-| Model inventory and documentation | SR 11-7; NIST AI RMF |
-| Change management | SR 11-7 |
+| Third-party and model-vendor risk | Interagency Guidance on Third-Party Relationships (2023); SR 26-2 (vendor products) |
+| Model inventory and documentation | SR 26-2; NIST AI RMF |
+| Change management | SR 26-2 (validation timing reflects model changes) |
 | Complaints received through a chat interface | FINRA Rules 4513, 4530 and 3110 |
 | Business continuity | FINRA Rule 4370; Compliance Rule 206(4)-7 |
 | Privacy | Regulation S-P (2024 amendments) |

@@ -110,7 +110,7 @@ tests:
   method: Have independent raters re-label a sample; measure agreement (Cohen's or Fleiss' kappa).
   passes_if: Agreement is above the agreed level for every label type.
   nist: MEASURE 2.1
-  hook: SR 11-7 (data quality)
+  hook: SR 26-2 (model testing of data quality and relevance)
 - id: P1
   name: Tail risk, three ways
   script: p1_tail_risk_three_ways.py
@@ -135,7 +135,7 @@ tests:
   method: Run the same exposure rule with EWMA (lambda 0.94) and a one-year sample estimate; compare forecast error, band breaches and average exposure.
   passes_if: Outcomes differ by less than the pre-agreed materiality, or the choice is documented and justified.
   nist: MEASURE 2.5
-  hook: SR 11-7 (conceptual soundness)
+  hook: SR 26-2 (conceptual soundness)
 - id: P4
   name: Sequence-of-returns risk for retirees
   script: p4_sequence_of_returns.py
@@ -191,14 +191,14 @@ tests:
   method: Compare candidate models' evidence and where their recommendations disagree.
   passes_if: The choice is justified where alternatives are close.
   nist: MEASURE 2.13
-  hook: SR 11-7 (conceptual soundness)
+  hook: SR 26-2 (conceptual soundness)
 - id: U6
   name: Data-supported feature use
   risk: The model relies on inputs the data does not support.
   method: Refit with priors that switch off unsupported features (automatic relevance determination).
   passes_if: Unsupported features are removed or justified.
   nist: MEASURE 2.9
-  hook: SR 11-7
+  hook: SR 26-2
 - id: U7
   name: Detecting a change in the client
   risk: A client's situation changes but their risk profile stays fixed at onboarding.
@@ -213,7 +213,7 @@ tests:
   method: Check that every probabilistic layer is trained and evaluated with a proper scoring rule (log loss, Brier).
   passes_if: Proper scoring rules throughout; recalibration only as clean-up.
   nist: MEASURE 2.5
-  hook: SR 11-7
+  hook: SR 26-2
 - id: F1
   name: Counterfactual twin clients
   script: f1_counterfactual_twins.py
@@ -262,21 +262,21 @@ tests:
   method: Measure the same fairness metric after each stage of the pipeline.
   passes_if: Each disparity is traced to a stage.
   nist: MEASURE 2.11
-  hook: SR 11-7 (effective challenge)
+  hook: SR 26-2 (effective challenge)
 - id: F7
   name: Confirmatory or exploratory
   risk: Exploratory fairness checks are reported as if they were pre-planned pass/fail tests.
   method: Classify every fairness test; confirmatory ones need a hypothesis written down before the data is seen.
   passes_if: Every result is labelled, and confirmatory claims have a dated pre-registration.
   nist: MEASURE 2.13
-  hook: SR 11-7 (documentation)
+  hook: SR 26-2 (documentation)
 - id: F8
   name: Is the evaluation data fit for purpose
   risk: Fairness conclusions rest on data with too few members of some groups or unknown origins.
   method: A datasheet for every evaluation dataset; compare its composition with the live client base.
   passes_if: Datasheets exist and gaps are stated.
   nist: MEASURE 2.1
-  hook: SR 11-7 (data)
+  hook: SR 26-2 (data selection, under conceptual soundness)
 - id: F9
   name: Fairness on real usage
   risk: Synthetic test clients miss how real clients interact.
@@ -290,7 +290,7 @@ tests:
   method: Agree written triggers for independent outside review.
   passes_if: Triggers are documented and followed.
   nist: MEASURE 1.3
-  hook: SR 11-7 (independence)
+  hook: SR 26-2 (independence, under effective challenge)
 - id: G1
   name: Worst group as co-headline
   script: f3_worst_group_intersectional.py
@@ -322,14 +322,14 @@ tests:
   method: A written minimum breakdown (age band, account size, region, experience) for every reported metric.
   passes_if: Audits find the standard followed.
   nist: MEASURE 2.8
-  hook: Disclosure; SR 11-7
+  hook: Disclosure; SR 26-2
 - id: G5
   name: Benchmark composition
   risk: The validation set does not look like the client base, so results do not transfer.
   method: Compare group shares in validation data with the live client base.
   passes_if: Shares match within tolerance; small cells are documented.
   nist: MEASURE 2.3
-  hook: SR 11-7 (data)
+  hook: SR 26-2 (data selection, under conceptual soundness)
 - id: G6
   name: Disparities without demographic data
   risk: The firm does not collect protected attributes, so it cannot see disparities directly.
@@ -352,7 +352,7 @@ tests:
   method: Re-run every data-driven choice inside the cross-validation folds and compare with the reported score.
   passes_if: The reported performance is the nested number, or the gap is documented.
   nist: MEASURE 2.5
-  hook: SR 11-7 (outcomes analysis)
+  hook: SR 26-2 (outcomes analysis)
 - id: S2
   name: Multiple testing across the suite
   script: s2_multiple_testing.py
@@ -361,7 +361,7 @@ tests:
   method: Collect every slice's p-value and control the false discovery rate (Benjamini-Hochberg).
   passes_if: Every pass/fail statement is backed by the corrected table.
   nist: MEASURE 2.13
-  hook: SR 11-7 (effective challenge)
+  hook: SR 26-2 (effective challenge)
 - id: S3
   name: Feature-selection stability
   script: s3_selection_stability.py
@@ -376,14 +376,14 @@ tests:
   method: Refit on bootstrap resamples and split error into bias, variance and noise per risk bucket.
   passes_if: The dominant error source is identified for every bucket that misses its target.
   nist: MEASURE 2.5
-  hook: SR 11-7 (outcomes analysis)
+  hook: SR 26-2 (outcomes analysis)
 - id: S5
   name: Effective complexity against data
   risk: The system has more effective parameters than its data can support, so validation numbers are optimistic.
   method: Estimate effective degrees of freedom per component and compare with the size of the validation data.
   passes_if: The ratio is within the agreed limit, or a written justification exists.
   nist: MEASURE 2.5
-  hook: SR 11-7 (conceptual soundness)
+  hook: SR 26-2 (conceptual soundness)
 - id: R1
   name: Dependent data
   script: r1_dependent_data.py
@@ -393,14 +393,14 @@ tests:
     of daily returns.)'
   passes_if: All reported intervals respect the dependence in the data.
   nist: MEASURE 2.5
-  hook: SR 11-7
+  hook: SR 26-2
 - id: R2
   name: Writing down which shifts matter
   risk: The team cannot say which changes in the world would break the model.
   method: Draw the causal diagram of the model's inputs and mark which relationships may change between environments.
   passes_if: A reviewed diagram exists; outputs are stable on data spanning the identified shifts.
   nist: MAP 2.3
-  hook: SR 11-7 (conceptual soundness)
+  hook: SR 26-2 (conceptual soundness)
 - id: R3
   name: Transfer to a new environment
   risk: A model validated on one market or channel performs worse in another.
@@ -421,7 +421,7 @@ tests:
   method: Compare against a flexible challenger region by region.
   passes_if: No region shows misspecification beyond tolerance.
   nist: MEASURE 2.5
-  hook: SR 11-7 (conceptual soundness)
+  hook: SR 26-2 (conceptual soundness)
 - id: O1
   name: Single-feature dominance
   script: o1_single_feature_dominance.py
@@ -429,18 +429,18 @@ tests:
   method: Neutralise each input in turn and measure how much decisions change.
   passes_if: No single input dominates beyond the agreed share.
   nist: MEASURE 2.5
-  hook: SR 11-7
+  hook: SR 26-2
 - id: O2
   name: Champion and challengers
   risk: The chosen model was never compared with structurally different alternatives.
   method: Train two different challengers on the same task and document why the champion wins.
   passes_if: A signed comparison exists and is refreshed.
   nist: MEASURE 2.13
-  hook: SR 11-7 (benchmarking)
+  hook: SR 26-2 (benchmarking, under conceptual soundness)
 - id: O3
   name: Shadow challenger
   risk: A newer model would serve clients better but nobody checks.
   method: Run a retrained challenger in shadow and compare continuously.
   passes_if: Sustained outperformance is escalated within the agreed time.
   nist: MEASURE 2.4
-  hook: SR 11-7 (ongoing monitoring)
+  hook: SR 26-2 (ongoing monitoring)

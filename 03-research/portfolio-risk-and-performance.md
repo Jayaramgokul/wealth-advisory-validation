@@ -143,8 +143,9 @@ reasonable basis to substantiate material statements of fact.
 
 **Principle.** The RiskMetrics EWMA estimator weights recent days more
 heavily (λ = 0.94); a one-year equal-weighted window does not. Each is a
-defensible modelling choice. SR 11-7 asks for sensitivity analysis on exactly
-this kind of choice.
+defensible modelling choice. SR 26-2 lists comparing alternative assumptions
+and methodologies as part of model testing, and this is exactly that kind of
+choice.
 
 **Objective.** Find out whether the choice of volatility estimator changes
 what the client experiences: how much risk they hold, and how often the
@@ -181,7 +182,7 @@ as it is evidenced.
 **Adjacent tests.** D3 (input drift) would trigger a rerun when the market
 regime changes; O1 (single-feature dominance) is the equivalent question for
 the client-placement model.
-**Regulatory hook.** SR 11-7: conceptual soundness and sensitivity analysis.
+**Regulatory hook.** SR 26-2: conceptual soundness; testing alternative assumptions and methodologies.
 **NIST AI RMF.** MEASURE 2.5.
 
 ---

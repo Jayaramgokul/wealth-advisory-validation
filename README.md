@@ -37,7 +37,7 @@ simulated data.
 
 | Step | Read |
 |---|---|
-| 1. Obligations | [Regulatory map](01-regulation/regulatory-map.md): fiduciary duty, SEC IM Guidance 2017-02, FINRA, Marketing Rule, retirement and senior-investor rules, SR 11-7 |
+| 1. Obligations | [Regulatory map](01-regulation/regulatory-map.md): fiduciary duty, SEC IM Guidance 2017-02, FINRA, Marketing Rule, retirement and senior-investor rules, SR 26-2 |
 | | [Gaps and enforcement](01-regulation/gaps-and-enforcement.md): areas a standard validation misses, in three pillars; SoFi Wealth, the 2024 AI-washing cases, exam priorities |
 | 2. Framework | [NIST AI RMF](02-nist-ai-rmf/nist-ai-rmf.md): how each function shaped the work, and which tests evidence which subcategory |
 | 3. Research | [Portfolio risk and performance](03-research/portfolio-risk-and-performance.md): tail risk, risk-adjusted returns, volatility estimators, sequence risk, intervals |

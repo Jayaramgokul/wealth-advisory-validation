@@ -65,7 +65,7 @@ one, and no resampling scheme recovers what the history does not contain.
 [`r1_dependent_data.py`](../05-illustrations/r1_dependent_data.py)
 
 **Adjacent tests.** P2 and P5 use block intervals for this reason.
-**Regulatory hook.** SR 11-7. **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2. **NIST AI RMF.** MEASURE 2.5.
 
 ---
 
@@ -80,7 +80,7 @@ shown to be stable on data spanning the identified shifts.
 **Client harm.** No one can say in advance which change would break the
 model, so the first sign is client harm.
 
-**Regulatory hook.** SR 11-7 (conceptual soundness). **NIST AI RMF.** MAP 2.3.
+**Regulatory hook.** SR 26-2 (conceptual soundness). **NIST AI RMF.** MAP 2.3.
 
 ### R3. Transfer to a new environment
 
@@ -119,7 +119,7 @@ misspecification beyond tolerance.
 kind of client, for example those near retirement whose tolerance changes
 non-linearly with age.
 
-**Regulatory hook.** SR 11-7 (conceptual soundness). **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2 (conceptual soundness). **NIST AI RMF.** MEASURE 2.5.
 
 ## How the tests fit together
 

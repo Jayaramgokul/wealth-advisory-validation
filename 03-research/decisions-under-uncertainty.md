@@ -154,7 +154,7 @@ choice is justified wherever alternatives are close and disagree materially.
 **Client harm.** A client's portfolio depends on which of two equally
 supported models happened to be chosen.
 
-**Regulatory hook.** SR 11-7 (conceptual soundness). **NIST AI RMF.** MEASURE 2.13. Related: O2.
+**Regulatory hook.** SR 26-2 (conceptual soundness). **NIST AI RMF.** MEASURE 2.13. Related: O2.
 
 ### U6. Data-supported feature use
 
@@ -168,7 +168,7 @@ justified on other grounds.
 **Client harm.** Advice depends on inputs that carry no real information,
 adding noise to every placement.
 
-**Regulatory hook.** SR 11-7. **NIST AI RMF.** MEASURE 2.9. Related: S3.
+**Regulatory hook.** SR 26-2. **NIST AI RMF.** MEASURE 2.9. Related: S3.
 
 ### U7. Detecting a change in the client
 
@@ -219,7 +219,7 @@ clients and is right only 79% of the time; its log loss is 0.76 against
 0.56 for the calibrated model.
 [`u8_proper_scoring.py`](../05-illustrations/u8_proper_scoring.py)
 
-**Regulatory hook.** SR 11-7. **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2. **NIST AI RMF.** MEASURE 2.5.
 
 ## How the tests fit together
 

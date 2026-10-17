@@ -287,7 +287,7 @@ explanation. Pass if each disparity found by F2 to F4 is traced to the stage
 that introduces it.
 **Client harm.** A disparity is found but fixed in the wrong place, for
 example by adjusting the portfolio when the questionnaire is the cause (F5).
-**Regulatory hook.** SR 11-7 (effective challenge). **NIST AI RMF.** MEASURE 2.11.
+**Regulatory hook.** SR 26-2 (effective challenge). **NIST AI RMF.** MEASURE 2.11.
 
 ### F7. Confirmatory or exploratory
 
@@ -297,7 +297,7 @@ before the data was seen) or exploratory (found while looking). Pass if every
 result carries a label and every confirmatory claim has its dated record.
 **Client harm.** Groups chosen after seeing the data turn noise into
 findings, or real problems into passes.
-**Regulatory hook.** SR 11-7 (documentation). **NIST AI RMF.** MEASURE 2.13. Related: S2.
+**Regulatory hook.** SR 26-2 (documentation). **NIST AI RMF.** MEASURE 2.13. Related: S2.
 
 ### F8. Is the evaluation data fit for purpose
 
@@ -307,7 +307,7 @@ composition with the live client base. Pass if datasheets exist and gaps are
 stated beside the results.
 **Client harm.** Fairness conclusions rest on data with too few members of
 some groups, or of unknown origin.
-**Regulatory hook.** SR 11-7 (data). **NIST AI RMF.** MEASURE 2.1. Related: G5, D7.
+**Regulatory hook.** SR 26-2 (data selection, under conceptual soundness). **NIST AI RMF.** MEASURE 2.1. Related: G5, D7.
 
 ### F9. Fairness on real usage
 
@@ -327,7 +327,7 @@ segment, a material model change). Pass if the triggers are documented and
 followed.
 **Client harm.** Internal evaluators share the blind spots of the team that
 built the model.
-**Regulatory hook.** SR 11-7 (independence). **NIST AI RMF.** MEASURE 1.3.
+**Regulatory hook.** SR 26-2 (independence, under effective challenge). **NIST AI RMF.** MEASURE 1.3.
 
 ## How the tests fit together
 

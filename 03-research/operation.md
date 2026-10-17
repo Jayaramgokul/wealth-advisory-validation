@@ -11,7 +11,7 @@ with Singapore's IMDA and PDPC) is a practical guide to running AI
 responsibly across its life cycle. Two of its themes matter most for models
 used in advice once they are live: whether the model was **chosen for good
 reasons over alternatives**, and whether it is **robust**, so that one bad
-input does not change advice for many clients at once. SR 11-7 points the
+input does not change advice for many clients at once. SR 26-2 points the
 same way with benchmarking and ongoing monitoring.
 
 ## What I read, and what each source changed
@@ -19,7 +19,7 @@ same way with benchmarking and ongoing monitoring.
 | Source | The idea I took from it | What it changed in the tests |
 |---|---|---|
 | WEF, IMDA & PDPC (2020), *Companion to the Model AI Governance Framework* | Document why a model was selected and how robust it is; keep checking it in operation. | Single-input dominance (O1); champion and challengers (O2); shadow challenger (O3) |
-| SR 11-7 | Benchmarking against alternative approaches is part of effective challenge. | O2 and O3 |
+| SR 26-2 (2026) | Benchmarking to other models is one way to assess conceptual soundness; monitoring continues after approval. | O2 and O3 |
 
 ## The tests
 
@@ -57,7 +57,7 @@ the client would react to a 20% fall) carries 45% of the weight and changes
 the other questions about 7%.
 [`o1_single_feature_dominance.py`](../05-illustrations/o1_single_feature_dominance.py)
 
-**Regulatory hook.** SR 11-7. **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2. **NIST AI RMF.** MEASURE 2.5.
 
 ---
 
@@ -72,7 +72,7 @@ signed comparison exists and is refreshed on an agreed schedule.
 **Client harm.** The model in use was never compared with simpler or
 different alternatives that might serve clients better.
 
-**Regulatory hook.** SR 11-7 (benchmarking). **NIST AI RMF.** MEASURE 2.13. Related: D6, U5.
+**Regulatory hook.** SR 26-2 (benchmarking, under conceptual soundness). **NIST AI RMF.** MEASURE 2.13. Related: D6, U5.
 
 ### O3. Shadow challenger
 
@@ -83,7 +83,7 @@ if sustained outperformance is escalated within an agreed time.
 **Client harm.** A better model exists but nobody checks, so clients keep
 receiving advice that could be improved.
 
-**Regulatory hook.** SR 11-7 (ongoing monitoring). **NIST AI RMF.** MEASURE 2.4.
+**Regulatory hook.** SR 26-2 (ongoing monitoring). **NIST AI RMF.** MEASURE 2.4.
 
 ## How the tests fit together
 

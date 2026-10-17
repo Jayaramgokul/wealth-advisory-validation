@@ -9,7 +9,7 @@
 Models used in advice learn from, are tested on, and are marketed with data:
 market histories behind backtests, fund universes behind product choice,
 client records behind the risk score, and reviewer labels behind "accuracy".
-SR 11-7 asks validators to check data quality and relevance, but in practice
+SR 26-2 includes an assessment of data quality and relevance in model testing, but in practice
 that often means completeness checks and reconciliations. Those catch broken
 data, not data that is quietly *unrepresentative*.
 
@@ -260,7 +260,7 @@ about direction but not about exact buckets, and that limits how precisely
 any model can be judged against them.
 [`d7_rater_agreement.py`](../05-illustrations/d7_rater_agreement.py)
 
-**Regulatory hook.** SR 11-7 (data quality). **NIST AI RMF.** MEASURE 2.1.
+**Regulatory hook.** SR 26-2 (model testing of data quality and relevance). **NIST AI RMF.** MEASURE 2.1.
 
 ## How the tests fit together
 

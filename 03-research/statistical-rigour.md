@@ -63,7 +63,7 @@ choosing 20 of 2,000 features on all the data and then cross-validating
 reports 76%. Repeating the choice inside each fold gives 52%.
 [`s1_nested_cross_validation.py`](../05-illustrations/s1_nested_cross_validation.py)
 
-**Regulatory hook.** SR 11-7 (outcomes analysis). **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2 (outcomes analysis). **NIST AI RMF.** MEASURE 2.5.
 
 ---
 
@@ -98,7 +98,7 @@ Reading each test at p < 0.05 flags 15: 9 real and 6 false alarms. With the
 false discovery rate controlled at 5%, the suite flags 9, all real.
 [`s2_multiple_testing.py`](../05-illustrations/s2_multiple_testing.py)
 
-**Regulatory hook.** SR 11-7 (effective challenge). **NIST AI RMF.** MEASURE 2.13.
+**Regulatory hook.** SR 26-2 (effective challenge). **NIST AI RMF.** MEASURE 2.13.
 
 ---
 
@@ -150,7 +150,7 @@ dominant source is identified for every bucket that misses its target.
 **Client harm.** The wrong fix is applied: more data for a model that is
 biased, or a more complex model when the problem is instability.
 
-**Regulatory hook.** SR 11-7 (outcomes analysis). **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2 (outcomes analysis). **NIST AI RMF.** MEASURE 2.5.
 
 ### S5. Effective complexity against data
 
@@ -162,7 +162,7 @@ written justification exists.
 **Client harm.** A model too flexible for its data looks good in validation
 and disappoints in use.
 
-**Regulatory hook.** SR 11-7 (conceptual soundness). **NIST AI RMF.** MEASURE 2.5.
+**Regulatory hook.** SR 26-2 (conceptual soundness). **NIST AI RMF.** MEASURE 2.5.
 
 ## How the tests fit together
 

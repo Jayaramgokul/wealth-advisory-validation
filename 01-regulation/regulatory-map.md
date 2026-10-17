@@ -23,7 +23,13 @@ settled first rather than assumed.
 | **Retirement accounts** | DOL PTE 2020-02; prohibited-transaction rules for IRAs | Retirement-specific advice logic; decumulation risk ([P4](../03-research/portfolio-risk-and-performance.md)) |
 | **Senior and vulnerable clients** | FINRA Rules 2165 and 4512; state adoptions of the NASAA model act | Older-client outcomes reported separately ([F3](../03-research/fair-treatment.md)); referral to a human when unsure ([U2](../03-research/decisions-under-uncertainty.md)) |
 | **Fair treatment** | Fiduciary duty; anti-discrimination principles | No proxy effects ([F1, F2, F4](../03-research/fair-treatment.md)); worst group reported ([F3](../03-research/fair-treatment.md)); direction of errors ([G2](../03-research/groups-an-average-hides.md)) |
-| **Model risk management** | Federal Reserve SR 11-7 / OCC 2011-12 | Inventory, documentation, independent validation, effective challenge; estimator choices justified ([P3](../03-research/portfolio-risk-and-performance.md)) |
+| **Model risk management** | SR 26-2 (Federal Reserve, OCC and FDIC, April 2026; replaced SR 11-7) | Inventory, documentation, effective challenge with independence, conceptual soundness, outcomes analysis, ongoing monitoring, all scaled to model materiality; estimator choices justified ([P3](../03-research/portfolio-risk-and-performance.md)) |
+
+SR 26-2 is written for banking organisations; advisers and broker-dealers
+commonly apply its principles as best practice. It scales the rigour of
+validation to a model's materiality, which is one reason every pass criterion
+here is agreed with the model owner rather than fixed in advance by this
+repository.
 
 Registration and client-asset rules also apply to any adviser. They are
 checked by process review rather than by testing a model, so they are not
