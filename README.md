@@ -1,14 +1,14 @@
-# Investment & Wealth Management Advisory Validation
+# Validating Robo-Advice and Other Algorithmic Models in Wealth Management
 
 ![tests](https://github.com/Jayaramgokul/wealth-advisory-validation/actions/workflows/tests.yml/badge.svg)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![licence](https://img.shields.io/badge/licence-MIT-green)
 
-**How I approach the independent validation of models used in investment
-and wealth management (risk profiling, suitability and portfolio risk): what
-the regulations require, where a standard model review falls
-short, what the research says about testing those gaps, and how each test is
-designed.**
+**How I approach the independent validation of the automated models behind
+investment advice, such as risk profiling, suitability and portfolio risk in a
+robo-adviser or an adviser's digital tools. It covers what the regulations
+require, where a standard model review falls short, what the research says
+about testing those gaps, and how each test is designed.**
 
 > Draws on my experience validating AI and quantitative models in financial
 > services. All examples use public sources and synthetic data.
@@ -23,7 +23,7 @@ simulated data.
 01 Regulation        What do the rules require of these models, and which obligations does a standard review not test?
         │
         ▼
-02 NIST AI RMF       How the work is organised: govern, map, measure, manage
+02 Frameworks        SR 26-2 for how the models are validated; NIST AI RMF for the risks that come from automation
         │
         ▼
 03 Research          What has the literature already learned about testing each gap?
@@ -35,11 +35,18 @@ simulated data.
 05 Illustrations     Each method on simulated data, with its result explained in plain language
 ```
 
+Robo-advice is two things at once: a set of financial models, and an
+automated system that places clients, often with no person involved. SR
+26-2's validation principles cover the first. They were written for banks,
+and advisers apply them as best practice. The NIST AI RMF covers the second:
+fairness, explainability, resilience and ongoing monitoring, which model risk
+guidance does not say how to evidence.
+
 | Step | Read |
 |---|---|
 | 1. Obligations | [Regulatory map](01-regulation/regulatory-map.md): fiduciary duty, SEC IM Guidance 2017-02, FINRA, Marketing Rule, retirement and senior-investor rules, SR 26-2 |
 | | [Gaps and enforcement](01-regulation/gaps-and-enforcement.md): areas a standard validation misses, in three pillars; SoFi Wealth, the 2024 AI-washing cases, exam priorities |
-| 2. Framework | [NIST AI RMF](02-nist-ai-rmf/nist-ai-rmf.md): how each function shaped the work, and which tests evidence which subcategory |
+| 2. Frameworks | SR 26-2 in the [regulatory map](01-regulation/regulatory-map.md): validation principles, scaled to how material the model is. [NIST AI RMF](02-nist-ai-rmf/nist-ai-rmf.md): how govern, map, measure and manage shaped the work, and which tests evidence which subcategory. |
 | 3. Research | [Portfolio risk and performance](03-research/portfolio-risk-and-performance.md): tail risk, risk-adjusted returns, volatility estimators, sequence risk, intervals |
 | | [Fair treatment of clients](03-research/fair-treatment.md): counterfactual twins, adverse impact with power, intersectional groups, adjusted disparity, questionnaire reliability |
 | | [Groups an average hides](03-research/groups-an-average-hides.md): direction of errors, thresholds, reporting standards |
