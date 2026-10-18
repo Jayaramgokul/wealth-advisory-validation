@@ -45,31 +45,71 @@ without knowing a choice was made for them.
 portfolio fits the client. A portfolio holding the own-brand fund can be
 perfectly suitable and still cost more than an equivalent one.
 
-**Data.** For each recommendation: the sleeve, the products eligible for it,
-their costs and mandates, the product chosen, and the client segment.
+**Data.** For each recommendation:
+- **the sleeve** of the portfolio where the product choice is made, such as
+  the core equity holding, and its share of the account;
+- **every product eligible for that sleeve,** with its costs, its mandate and
+  whether the firm or an affiliate owns or earns from it;
+- **the product chosen;**
+- **the client segment,** such as account size, channel or region, since a
+  conflict can sit in one segment only;
+- **the disclosure** the client received about own-brand products.
 
 **Method.**
-1. Define a product-neutral benchmark: what a ranking on cost and mandate
-   fit, blind to ownership, would choose. Here the own-brand fund would be
-   chosen for 10% of sleeves.
-2. Share of own-brand selections per segment, with Wilson intervals and a test
-   against the benchmark.
-3. The fee difference on the excess, per client per year.
-4. Read the disclosure and ask whether a client could tell, from it, that
-   this happens and what it costs.
+1. **Define a product-neutral benchmark:** what a ranking on cost and
+   mandate fit, blind to who owns the product, would choose for each sleeve.
+   The benchmark is agreed with compliance before the data is examined. Here
+   the own-brand fund would be chosen for 10% of sleeves.
+2. **Compute the own-brand share per segment,** with a 95% Wilson interval,
+   and test it against the benchmark. A one-sided test is appropriate, since
+   the concern is selection *above* the benchmark.
+3. **Put a cost on the excess:** the share above the benchmark, times the
+   average amount in the sleeve, times the fee difference between the
+   own-brand product and the cheapest equivalent. Express it per client per
+   year, which is what a client would understand.
+4. **Look for the rule that causes it.** A tilt confined to one segment
+   usually traces to a specific rule, such as a different product list for
+   larger accounts.
+5. **Read the disclosure** and ask whether a client could tell, from it, that
+   this happens to them and what it costs.
 
-**Setting the pass criteria.** No unexplained excess over the benchmark in
-any segment. Any excess has a documented client-interest reason and a
-disclosure specific enough for informed consent.
+**Setting the pass criteria.** Two conditions, agreed in advance:
+- **No unexplained excess over the benchmark in any segment.** A difference
+  can be statistically significant and still trivial in cost, so the bar
+  combines both: significant *and* above an agreed cost per client.
+- **Any excess that remains has a documented client-interest reason** (for
+  example, a mandate no other product offers) and a disclosure specific
+  enough for informed consent.
 
-**What the illustration shows.** Small and mid-size accounts are close to the
-benchmark (10% and 12%). The largest accounts are placed in the own-brand fund
-53% of the time, costing roughly $330 per client a year in extra fees. The
-overall share, diluted by the smaller accounts, would look much less striking.
+**What the illustration shows.** The script simulates 8,000 clients in three
+account-size segments. In 40% of each account, the model chooses between an
+own-brand fund (0.45% a year) and an equivalent outside fund (0.10%). A
+product-neutral ranking would pick the own-brand fund 10% of the time, but
+the simulated model has a rule that favours it for the largest accounts.
+
+| Segment | Clients | Own-brand share (95% interval) | Test against 10% | Extra fees per client per year |
+|---|---|---|---|---|
+| Smaller (up to $25,000) | 4,009 | 10% (9–11%) | not significant | about $0 |
+| Mid-size ($25,000 to $100,000) | 2,813 | 12% (11–14%) | significant | about $2 |
+| Largest ($100,000 to $1 million) | 1,178 | **53%** (51–56%) | highly significant | **about $327** |
+
+Across all clients, the own-brand share is 17%. On its own, that might pass
+as a modest tilt. Segment by segment, the picture is clear: smaller accounts
+match the benchmark, and the largest accounts are placed in the own-brand
+fund more than half the time, at a cost of over $300 a year each. The
+mid-size result shows why the criteria combine significance and cost: a
+2-point excess is statistically significant with 2,800 clients but costs
+about $2 a year.
 [`c1_proprietary_product_tilt.py`](../05-illustrations/c1_proprietary_product_tilt.py)
 
-**Adjacent tests.** R4 (feedback loops), because a tilt in recommendations can
-reshape the data future models learn from.
+**Adjacent tests.**
+- **R4** watches for feedback loops: a tilt in recommendations can reshape
+  the data future models learn from.
+- **F3** uses the same segment-by-segment logic for suitability; a conflict,
+  like unfairness, can hide in an average.
+- **P2** applies the same caution to claims that one product performs better
+  than another.
+
 **Regulatory hook.** Duty of loyalty (IA-5248); SEC order IA-5826 (SoFi
 Wealth, 2021). **NIST AI RMF.** MEASURE 2.11.
 
