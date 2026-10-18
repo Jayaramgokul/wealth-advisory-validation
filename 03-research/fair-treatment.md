@@ -59,24 +59,71 @@ portfolios because of where they live, or their sex.
 *documented* to use. A twin test checks what the model actually does,
 including proxies such as region that nobody listed as protected.
 
-**Data.** Client records, or realistic synthetic personas, and the ability to
-call the scoring model.
+**Data.** A set of client records and the ability to run the scoring model on
+records the validator has edited. Real client records are best, because they
+carry the real mix of answers; realistic synthetic personas work when real
+records cannot be used. Two lists are agreed with compliance first:
+
+- **Attributes that must not matter:** protected characteristics, and inputs
+  that could stand in for them, such as postcode, region or first language.
+- **Attributes that may legitimately matter:** age and time horizon, for
+  example. These are still tested, but against the documented rule rather
+  than against zero.
+
+If the model can only be reached through a client-facing system, the twins
+are submitted through that system, so that any adjustment made outside the
+scoring model is caught too.
 
 **Method.**
-1. For each client, create twins that differ only in one attribute (each value
-   of sex, each region), with every questionnaire answer unchanged.
-2. Run the model on each twin.
-3. Count how often the recommended bucket changes, with a Wilson interval.
+1. For each client, create one twin per alternative value of the attribute
+   under test (each sex, each region), leaving every questionnaire answer and
+   every other input unchanged.
+2. Run the model on the original and on each twin, and record the
+   recommended risk band each time.
+3. For each attribute value, count the share of clients whose band changes,
+   with a 95% Wilson interval. Only clients whose value actually changed are
+   counted, so that "setting region to east" is measured on clients who were
+   not already in the east.
+4. Where a change appears, look at which clients move. Changes clustered just
+   below or above a band boundary show the attribute nudging the score; a
+   large jump shows a rule that overrides the score.
+5. Repeat with the same random seed, or several times, if the model has any
+   random element, so that a change caused by randomness is not mistaken for
+   a change caused by the attribute.
 
-**Setting the pass criteria.** For a protected attribute, the expected rate is
-zero. Agree a tolerance only if the model has a documented random element. For
-an attribute that is a legitimate suitability factor, the change must match
-the documented rule.
+**Setting the pass criteria.**
+- **Attributes that must not matter:** the expected rate of change is zero.
+  A tolerance is agreed only if the model has a documented random element,
+  and then it is set from repeated runs of the unedited records.
+- **Attributes that may legitimately matter:** the observed changes must
+  match the documented rule, in direction and size. A model documented to
+  lower risk for clients near retirement should move those clients down, and
+  only those clients.
+- **Undocumented effects:** any attribute that changes the recommendation and
+  is not documented as a suitability factor is a finding, whatever its size.
+  It goes to the model owner to explain or remove.
 
-**What the illustration shows.** Two stand-in scoring rules are tested. The
-one using only answers changes nothing. The one with a hidden regional
-adjustment changes the recommendation for 12% to 29% of clients, depending on
-the region assigned. Sex changes nothing in either.
+**What the illustration shows.** The script simulates 4,000 clients who each
+answer eight questions on a 1–5 scale. Two stand-in scoring rules turn the
+answers into a 0–100 score and then into one of five risk bands:
+
+- the first uses the answers only;
+- the second adds a hidden regional adjustment: 4 points off for clients in
+  the south, 3 points added in the west.
+
+| Rule | Attribute changed | Clients whose band changes |
+|---|---|---|
+| Answers only | Sex, or any region | 0.0% (upper bound of the interval 0.1–0.2%) |
+| With regional adjustment | Sex | 0.0% |
+| With regional adjustment | Region set to east, or to north | 11.9% (about 11–13%) |
+| With regional adjustment | Region set to west | 21.2% (19.8–22.7%) |
+| With regional adjustment | Region set to south | 29.0% (27.5–30.7%) |
+
+East and north carry no adjustment, so moving a client there only removes
+the adjustment they had. The share that changes band is the share of clients
+whose score sat close enough to a band boundary for 3 or 4 points to matter.
+The test finds the regional rule without any access to the code, and sizes
+its effect.
 [`f1_counterfactual_twins.py`](../05-illustrations/f1_counterfactual_twins.py)
 
 **Limitation, stated plainly.** Flipping one attribute while holding the rest
@@ -84,8 +131,14 @@ fixed only catches *direct* use. Full counterfactual fairness also follows
 the attribute's influence through other inputs that depend on it, which needs
 a causal model. That is why F2 to F4 look at outcomes as well.
 
-**Adjacent tests.** F4 checks for indirect effects through outcomes; O1
-checks whether any single input dominates.
+**Adjacent tests.**
+- **F2 to F4** look at outcomes by group, which also captures indirect
+  effects that a twin test cannot see.
+- **O1** checks whether any single input, documented or not, dominates the
+  recommendation; a proxy found here often shows up there too.
+- **F6** traces where in the pipeline an effect enters, for example in the
+  score or in a later override.
+
 **Regulatory hook.** Duty of loyalty, not unfairly favouring one client over
 another (IA-5248).
 **NIST AI RMF.** MEASURE 2.11.
@@ -109,30 +162,121 @@ detecting a problem.
 **Why existing tests miss it.** A ratio on its own produces both errors. It
 flags noise in small groups and passes them when they are too small to fail.
 
-**Data.** Outcome per client (for example, access to a growth portfolio) and
-group membership.
+**Data.** One row per client in the review period, holding the model's
+outcome for that client and the groups they belong to. Three things need
+agreeing before any data is pulled:
+
+- **The favourable outcome.** It has to be something that benefits the
+  client, defined with the model owner. Here it is being offered a growth
+  portfolio. A growth portfolio is not good for every client, which is why
+  F2 is a first screen; differences that legitimate needs explain are handled
+  in F4.
+- **The groups.** Advisers often don't record protected characteristics.
+  Where they don't, the validator either agrees a proxy method with
+  compliance, or tests on characteristics the firm does hold. Age is the
+  obvious one, and it matters for senior-investor rules.
+- **The period.** It should be long enough that the smallest groups have
+  usable numbers. Group sizes go into the record before any outcome is looked
+  at, because they decide what the test can and cannot show.
+
+The basic checks before analysis:
+- the share of clients with no group recorded, reported rather than silently
+  dropped;
+- duplicate clients;
+- clients who moved group during the period, such as crossing an age band.
 
 **Method.**
-1. Outcome rate per group with a Wilson interval.
-2. Impact ratio against the best-treated group.
-3. Chi-square test of equal rates across groups.
-4. For each group, the smallest gap the test could reliably detect (80%
-   power). If it is larger than the gap that would matter, the group is
-   **inconclusive**, not passing.
+1. **Outcome rate per group, with a 95% Wilson interval.** The textbook
+   interval (rate ± 1.96 standard errors) behaves badly for small groups and
+   for rates near 0 or 1, and can even go below zero. The Wilson interval
+   stays between 0 and 1 and keeps close to its stated coverage. Report the
+   count, the number with the favourable outcome, the rate and the interval
+   for each group.
+2. **Impact ratio.** Each group's rate divided by the highest group's rate;
+   below 0.8 is flagged. The reference group is agreed in advance. If the
+   best-treated group is itself small, its rate is noisy and every ratio
+   inherits that noise, so the ratio against the overall rate is shown
+   alongside.
+3. **A test of whether the rates really differ.** A chi-square test on the
+   full group-by-outcome table asks whether any difference is larger than
+   chance. Each flagged group is then compared with the reference group
+   directly: a two-proportion test, or Fisher's exact test when the counts
+   are small. Those comparisons are adjusted for the number made (S2).
+4. **Power.** For each group, work out the smallest gap the test could
+   reliably detect: 80% power at the 5% level, given that group's size, the
+   size of everyone else and the overall rate. If that smallest detectable gap
+   is larger than the gap agreed to matter, a "pass" means nothing, because a
+   problem of that size could be hiding.
+5. **One table for the report:** group, clients, rate and interval, impact
+   ratio, p-value, smallest detectable gap, and the verdict.
 
-**Setting the pass criteria.** Pass if no group is below four-fifths with
-statistical support. Agree in advance the gap that would matter (here, 10
-points); any group whose detectable gap exceeds it is reported as
-inconclusive.
+**Setting the pass criteria.** The criteria are agreed with the model owner
+and compliance before the outcomes are seen, which makes the result
+confirmatory rather than exploratory (F7). Each group gets one of three
+verdicts:
 
-**What the illustration shows.** Group D has an impact ratio of 0.75 and the
-chi-square test confirms the rates differ. Group E, with 60 clients, has an
-impact ratio of 0.91 and would "pass", but a gap as large as 18 points could
-go undetected, so it is reported as inconclusive.
+- **Flag:** an impact ratio below 0.8 *and* a difference that is
+  statistically significant after adjustment. Flagged groups go to F4, to see
+  whether legitimate factors explain the gap, and then to F6, to see where in
+  the pipeline it arises.
+- **Pass:** the ratio is at or above 0.8, or the difference is not
+  significant, *and* the group is large enough to have detected a gap that
+  matters.
+- **Inconclusive:** the group is too small to judge. The report says so,
+  together with what would settle it: pooling more periods, reviewing those
+  clients' files by hand, or waiting for more clients.
+
+The gap that matters (here, 10 percentage points) is a judgement about client
+outcomes: how large a difference in access would make a real difference to
+what clients end up holding. It is usually set tighter for groups the
+regulator watches most closely, such as older clients.
+
+The four-fifths rule itself comes from US employment-selection guidance
+(1978). For advisers it is a widely used screening convention, not a legal
+test, which is another reason it is paired with statistics here.
+
+**What the illustration shows.** The script simulates 6,760 clients in five
+groups with known true rates of access to growth portfolios:
+- groups A, B and C are similar, at 49–51%;
+- group D is genuinely lower, at 37%;
+- group E is small, only 60 clients, with a true rate of 42%.
+
+| Group | Clients | Observed rate (95% interval) | Impact ratio | Smallest detectable gap | Verdict |
+|---|---|---|---|---|---|
+| A | 2,000 | 50.3% (48.2–52.5) | 0.98 | 3.7 points | Pass |
+| B | 1,800 | 51.3% (49.0–53.6) | 1.00 (reference) | 3.9 points | Pass |
+| C | 1,500 | 48.9% (46.4–51.5) | 0.95 | 4.1 points | Pass |
+| D | 1,400 | 38.6% (36.1–41.2) | 0.75 | 4.2 points | **Flag** |
+| E | 60 | 46.7% (34.6–59.1) | 0.91 | 18.1 points | **Inconclusive** |
+
+The chi-square test confirms the rates are not all equal (p ≈ 10⁻¹²).
+
+- **Group D:** the rule works as intended. The ratio is below 0.8, the
+  interval sits well below group B's, and with 1,400 clients the test could
+  have detected a gap of about 4 points.
+- **Group E:** the rule misleads. Its ratio of 0.91 "passes", but its
+  interval runs from 35% to 59%, wide enough to include both D's disadvantage
+  and full parity. Its true rate is 8 points below groups A to C, a real
+  disadvantage that the ratio alone would have passed.
+
+The smallest-detectable-gap column is what separates the two cases.
 [`f2_adverse_impact_four_fifths.py`](../05-illustrations/f2_adverse_impact_four_fifths.py)
 
-**Adjacent tests.** F3 extends this to combinations of factors; F4 asks
-whether a gap is explained by legitimate factors.
+**Adjacent tests.**
+- **F3** crosses characteristics, for example older clients in a particular
+  region, where a disadvantage can hide even when each characteristic passes
+  on its own. Those combined groups are smaller, so the power check in step 4
+  matters even more there.
+- **F4** asks how much of a flagged gap legitimate differences explain, such
+  as time horizon or stated objectives, by comparing like with like. Only the
+  unexplained part is a fairness finding.
+- **F6** traces a gap that survives F4 to the stage of the pipeline that
+  introduces it.
+- **S2** controls false alarms when many groups and periods are screened at
+  once.
+- **F7** keeps the groups and thresholds fixed in advance separate from
+  anything found by slicing the data afterwards.
+
 **Regulatory hook.** Duty of loyalty (IA-5248).
 **NIST AI RMF.** MEASURE 2.11.
 
@@ -154,30 +298,89 @@ healthy.
 **Why existing tests miss it.** Fairness reviews commonly check one factor at
 a time. Each factor alone can show only a small gap.
 
-**Data.** Outcome per client (here, whether the placement was suitable) and a
-small, pre-agreed set of factors.
+**Data.** One row per client with the outcome being judged and a small set
+of characteristics. Here the outcome is whether the client was placed in a
+suitable portfolio, which needs an agreed reference: a file review by an
+adviser, or a later check against the client's circumstances (D7 covers how
+reliable those reference labels are).
+
+The characteristics are chosen for a reason that can be written down before
+looking:
+- groups the regulator singles out, such as older clients;
+- groups the questionnaire may measure less well, such as novice investors
+  (F5);
+- features of the account that change what suitable means, such as size.
+
+Three to four characteristics, each with two or three levels, is usually the
+practical limit. Each extra characteristic multiplies the number of
+combinations, and every combination needs enough clients to judge.
 
 **Method.**
-1. Pre-register a limited grid of factor combinations. A grid that is too
-   fine produces empty or tiny cells.
-2. Outcome rate per cell with a Wilson interval; cells below a minimum size
-   are listed as too small to judge.
-3. Test each cell against the rest and control the false discovery rate
-   (Benjamini-Hochberg), because many cells are being compared.
-4. Report the worst adequately sized cell beside the overall rate (G1).
+1. **Pre-register the grid:** the characteristics, their levels, the
+   minimum number of clients for a combination (a "cell") to be judged, and
+   the tolerance. A grid that is too fine produces empty or tiny cells.
+2. **Rate per cell, with a 95% Wilson interval.** Cells below the minimum
+   size are listed by name as too small to judge, never dropped silently.
+3. **Test each cell against everyone else.** Fisher's exact test works for
+   any cell size. Because many cells are compared at once, control the false
+   discovery rate with Benjamini–Hochberg and report the adjusted value (the
+   q-value) beside each raw p-value. With 12 cells, at least one is likely to
+   look unusual by chance alone.
+4. **Read the direction.** The test is two-sided, so cells doing
+   significantly *better* than average also show up. These are not findings
+   in themselves, but they show who the model serves best, which helps
+   explain the gap (G2).
+5. **Report the worst adequately sized cell beside the overall rate,** with
+   its interval, in every summary (G1). An average without its worst group is
+   the figure that hid the problem in the first place.
 
-**Setting the pass criteria.** Every populated cell is within the agreed
-tolerance of the overall rate, or has a remediation plan. Agree the grid,
-minimum cell size and tolerance before looking.
+**Setting the pass criteria.** Agreed before looking: the grid, the minimum
+cell size and the tolerance (how far a cell may fall below the overall rate).
+- **Pass:** every cell large enough to judge is within the tolerance, or the
+  shortfall is not significant after the false-discovery correction and the
+  cell is large enough to have detected it (the power check from F2).
+- **Finding:** a cell below the tolerance with a significant corrected
+  result. It needs a remediation plan with an owner and a date, and goes to
+  F4 and F6 like a flagged F2 group.
+- **Too small:** cells below the minimum size are reported as untested, with
+  what would make them testable.
 
-**What the illustration shows.** Single factors show gaps of 3 to 8 points.
-The worst cell (65+, novice, small account) is suitably placed 62% of the
-time against 79% overall, and survives the correction for multiple testing.
+**What the illustration shows.** The script simulates 6,000 clients
+described by age band, investment experience and account size. The true
+chance of a suitable placement is 82%, three points lower for clients aged
+65 and over, three points lower for novices, and **15 points lower again for
+clients who are both**. Account size has no effect at all.
+
+A one-factor-at-a-time check sees only modest gaps:
+
+| Factor | Suitably placed |
+|---|---|
+| Age | under 40: 81%, 40–64: 81%, 65+: 73% |
+| Experience | experienced: 82%, novice: 76% |
+| Account size | large: 81%, small: 78% |
+
+The cell view finds the problem. Against 79% overall:
+- 65+, novice, small account: **62%** (95% interval 57–67%), q ≈ 8 × 10⁻¹²;
+- 65+, novice, large account: **67%**, q ≈ 0.0004.
+
+Both cells of older novices stand out, as they should. The small-account
+cell is the worst only by chance, since account size plays no part in the
+simulation; a reader should not conclude that small accounts are the
+problem. Two cells of experienced clients come out significantly above
+average, which is the other side of the same pattern. Every cell has at
+least 171 clients, so none falls below the minimum of 80.
 [`f3_worst_group_intersectional.py`](../05-illustrations/f3_worst_group_intersectional.py)
 
-**Adjacent tests.** G1 makes the worst group a standing part of every report;
-G2 asks which direction the errors lean; P4 covers the retirement-specific
-risk for older clients.
+**Adjacent tests.**
+- **G1** makes the worst group a standing part of every report, not a
+  one-off finding.
+- **G2** asks which way the errors lean: older novices placed in too much
+  risk is a different harm from too little.
+- **F5** checks whether the questionnaire measures novices less reliably,
+  one likely reason for this pattern.
+- **P4** covers the retirement-specific risk that makes misplacing older
+  clients costly.
+
 **Regulatory hook.** Duty of care and loyalty (IA-5248); senior investors
 (FINRA Rule 2165).
 **NIST AI RMF.** MEASURE 2.11.
@@ -200,31 +403,66 @@ explained.
 **Why existing tests miss it.** A single disparity figure cannot distinguish
 these cases, whichever version is reported.
 
-**Data.** Score or outcome per client, group membership, and the agreed
-legitimate factors (here, measured risk tolerance).
+**Data.** For each client: the model's score or outcome, group membership,
+and the factors agreed as legitimate reasons for a difference. Here the
+legitimate factor is the client's measured risk tolerance. In practice the
+list usually comes from the firm's own suitability policy: time horizon,
+investment objective, capacity for loss, existing holdings.
+
+Each control factor needs a short written justification, agreed with
+compliance before the analysis. Adding a factor to the list is a statement
+that differences it explains are acceptable, so the list is a policy
+decision as much as a statistical one.
 
 **Method.**
-1. Regress the outcome on group alone: the raw gap.
-2. Regress it on group plus the agreed legitimate factors: the adjusted gap,
-   with its interval.
-3. Report both, together with the list of control factors.
+1. **Raw gap.** Regress the outcome on group membership alone. The
+   coefficient is the raw difference between groups.
+2. **Adjusted gap.** Regress the outcome on group membership plus the agreed
+   factors. The group coefficient is now the difference between clients who
+   are alike on those factors, reported with its 95% interval.
+3. **Compare.** The share of the raw gap that the adjustment removes is the
+   explained part; what remains is unexplained.
+4. **Check the model fits.** If the relationship with a factor is not
+   linear, or differs between groups, a straight-line adjustment can leave a
+   false gap or remove a real one. Plot the outcome against each factor by
+   group, and allow curves or interactions where the plots call for them.
+5. **Report both gaps together,** with the list of control factors and
+   their justifications.
 
-**Setting the pass criteria.** The adjusted gap's interval lies within the
-agreed tolerance. Control factors are agreed with compliance in advance,
-because each one is a statement that a difference is legitimate.
+**Setting the pass criteria.** The adjusted gap's 95% interval lies within
+the agreed tolerance. The tolerance is set the same way as the material gap
+in F2: how large a difference in outcomes would matter to clients. A raw gap
+that is fully explained is reported as explained, with the factors named,
+not as a pass on fairness in general.
 
-**What the illustration shows.** In two simulated scenarios the raw gaps are
-similar in direction (−6.2 and −10.2 points). After adjusting for tolerance,
-the first falls to +0.1 (interval −0.2 to +0.4): explained. The second
-remains at −3.9 (interval −4.2 to −3.6): not explained.
+**What the illustration shows.** The script simulates 4,000 clients in two
+groups, X and Y. Group Y is older on average (55 against 45), and older
+clients have lower risk tolerance, so the model's score is lower for Y for a
+legitimate reason. A second scenario adds an extra 4-point penalty for group
+Y that has no suitability reason.
+
+| Scenario | Raw gap (Y minus X) | Adjusted for tolerance (95% interval) |
+|---|---|---|
+| Gap explained by tolerance | −6.2 points | +0.1 (−0.2 to +0.4): explained |
+| Extra 4-point penalty for Y | −10.2 points | −3.9 (−4.2 to −3.6): not explained |
+
+The raw gaps point the same way and could easily be read the same way. The
+adjusted figures separate them: the first gap disappears once like is
+compared with like, and the second leaves almost exactly the 4-point penalty
+that was built in.
 [`f4_adjusted_disparity.py`](../05-illustrations/f4_adjusted_disparity.py)
 
 **Caution.** Adjusting for a factor that is itself affected by the protected
 attribute can hide a real disparity. This is why the control list needs
 justifying, not just choosing.
 
-**Adjacent tests.** F1 (direct effect); F6 (which stage of the pipeline
-introduces the gap).
+**Adjacent tests.**
+- **F1** tests for direct use of an attribute; F4 measures the overall
+  difference once legitimate factors are allowed for, however it arises.
+- **F2** decides which gaps come here; F4 decides which of them are findings.
+- **F6** traces an unexplained gap to the stage of the pipeline that
+  introduces it.
+
 **Regulatory hook.** Duty of loyalty (IA-5248).
 **NIST AI RMF.** MEASURE 2.11.
 
@@ -246,26 +484,61 @@ yardstick inherits the error.
 **Why existing tests miss it.** Questionnaires are usually reviewed for
 wording and scoring logic, not tested statistically by group.
 
-**Data.** Item-level questionnaire answers by client group; where available,
-an independent measure of tolerance or test-retest answers.
+**Data.** The answer to every question for each client, not just the final
+score, together with the client groups to compare. Two further sources make
+the test much stronger where they exist:
+- **an independent measure of risk tolerance,** such as an adviser's
+  assessment or a validated external scale, to check the score against;
+- **repeat answers,** from clients who completed the questionnaire twice a
+  few weeks apart, to measure how stable the answers are.
 
 **Method.**
-1. Cronbach's alpha per group, with a bootstrap interval.
-2. Where possible, correlation of the score with an independent measure.
-3. Compare across groups.
+1. **Cronbach's alpha per group.** Alpha measures how consistently the
+   questions point in the same direction for the same client. Values around
+   0.8 or above are usually taken as good for this kind of instrument; values
+   near 0.5 mean much of each answer is noise.
+2. **An interval for each alpha.** Resample clients within each group (a
+   bootstrap) and take the middle 95% of the resampled alphas, so that a gap
+   between groups can be judged against the uncertainty.
+3. **Agreement with an independent measure,** where one exists: the
+   correlation between the questionnaire score and that measure, per group.
+4. **Item by item.** Look for questions that behave differently between
+   groups, for example a question about volatility that novices answer
+   almost at random. These are the ones to rewrite.
 
-**Setting the pass criteria.** Agree a minimum reliability and a maximum gap
-between groups. Where a group falls short, remedies include clearer items,
-follow-up questions when answers contradict each other (as the SEC's
-2017 guidance suggests), or disclosing the limitation.
+**Setting the pass criteria.** Agree two numbers before testing: a minimum
+reliability for every group (often 0.7 to 0.8), and a maximum gap between
+groups. A group that falls short is a finding even if every outcome test
+passes, because outcome tests that use the score cannot see measurement
+error. Remedies include clearer items, follow-up questions when answers
+contradict each other (as the SEC's 2017 guidance suggests), or disclosing
+the limitation.
 
-**What the illustration shows.** Alpha is 0.84 for experienced investors and
-0.54 for novices, with intervals that do not overlap. The score also tracks
-true tolerance less closely for novices (correlation 0.74 against 0.91).
+**What the illustration shows.** The script simulates 4,000 clients, 40% of
+them novices. Each client has a true risk tolerance, and their eight answers
+are driven by it plus random noise. Novices answer with about twice as much
+noise as experienced investors.
+
+| Group | Cronbach's alpha (95% interval) | Correlation of score with true tolerance |
+|---|---|---|
+| Experienced | 0.84 (0.83 to 0.84) | 0.91 |
+| Novice | 0.54 (0.51 to 0.58) | 0.74 |
+
+The intervals are far apart, so the difference is not chance. For novices,
+the same eight questions produce a score that tracks their real tolerance
+much less closely. Because placement depends on the score, novices are more
+likely to land in the wrong band, and the illustration for F3 shows the
+cost: novices, especially older ones, are the clients most often misplaced.
 [`f5_questionnaire_reliability.py`](../05-illustrations/f5_questionnaire_reliability.py)
 
-**Adjacent tests.** U2 (refer borderline clients to a human), which is most
-needed where measurement is weakest; F3 (novices appear in the worst cell).
+**Adjacent tests.**
+- **U2** refers borderline clients to a human, which matters most where
+  measurement is weakest.
+- **F3** shows novices in the worst-served cell, one likely consequence.
+- **D7** checks the reliability of the labels used as "truth" in other
+  tests, the same idea applied to the reference rather than the
+  questionnaire.
+
 **Regulatory hook.** Questionnaire design (SEC IM Guidance 2017-02); duty of
 care, reasonable inquiry into the client's risk tolerance (IA-5248).
 **NIST AI RMF.** MEASURE 2.11; MEASURE 2.1 (evaluation data and measurement documented).
@@ -276,57 +549,214 @@ care, reasonable inquiry into the client's risk tolerance (IA-5248).
 
 Barocas et al.'s main point is that a disaggregated evaluation is a set of
 design choices, and each choice can quietly decide the result. F6 to F10 turn
-those choices into checks on the evaluation process. They are about process,
-so their entries are shorter.
+those choices into checks on the evaluation process. They have no
+illustration, because each one checks how the evaluation was run rather than
+a statistical property of the model.
 
 ### F6. Where in the pipeline does unfairness arise
 
-**Objective, method and pass criteria.** Measure the same fairness metric
-after each stage: questionnaire answers, risk score, bucket, portfolio,
-explanation. Pass if each disparity found by F2 to F4 is traced to the stage
-that introduces it.
+**Objective.** Trace each disparity confirmed by F2 to F4 to the stage of
+the advice pipeline that introduces it.
+
 **Client harm.** A disparity is found but fixed in the wrong place, for
 example by adjusting the portfolio when the questionnaire is the cause (F5).
+
+**Why existing tests miss it.** Fairness is usually measured once, on the
+final recommendation. A gap seen at the end could have entered at any of
+several earlier steps.
+
+**Data.** For the same clients, the output of every stage, kept so that each
+can be analysed separately:
+1. the questionnaire answers;
+2. the risk score;
+3. the risk band;
+4. the portfolio recommended;
+5. the explanation or report the client receives.
+
+Any manual overrides, with who made them and why, are part of this data.
+
+**Method.**
+1. Measure the same fairness metric after each stage, for the groups
+   flagged by F2 to F4. For the first four stages this is the F2 rate or the
+   F4 adjusted gap. For the explanation, it is a check that every group
+   receives the same required content: for example, the same risk
+   disclosures, at a similar reading level.
+2. Look for the stage where the gap first appears, and any stage where it
+   grows or shrinks.
+3. Check the hand-offs between stages, such as score cut-offs and override
+   rules, which can introduce a gap that neither neighbouring stage shows on
+   its own.
+
+**Setting the pass criteria.** Pass if every confirmed disparity is traced
+to the stage that introduces it, and the remediation plan acts on that
+stage. A plan that changes a later stage to offset an earlier one is a
+finding in itself, because the cause remains.
+
+**Adjacent tests.**
+- **F5** examines the first stage, the questionnaire, in depth.
+- **F1** catches direct use of an attribute at the scoring stage.
+- **O1** checks whether one input dominates the score.
+
 **Regulatory hook.** SR 26-2 (effective challenge). **NIST AI RMF.** MEASURE 2.11.
 
 ### F7. Confirmatory or exploratory
 
-**Objective, method and pass criteria.** Label every fairness result as
-confirmatory (a hypothesis, groups and threshold written down and dated
-before the data was seen) or exploratory (found while looking). Pass if every
-result carries a label and every confirmatory claim has its dated record.
+**Objective.** Make clear which fairness results tested a question decided
+in advance, and which were found while looking.
+
 **Client harm.** Groups chosen after seeing the data turn noise into
 findings, or real problems into passes.
-**Regulatory hook.** SR 26-2 (documentation). **NIST AI RMF.** MEASURE 2.13. Related: S2.
+
+**Why existing tests miss it.** Validation reports rarely record when each
+choice was made. Once the results are written up, a group chosen in advance
+and a group chosen because it looked interesting read exactly the same.
+
+**Data.** A dated record, made before the outcome data is opened, of:
+- the questions to be tested;
+- the groups and the characteristics that define them;
+- the metrics and thresholds;
+- the control factors for F4.
+
+A version-controlled file, or a signed and dated memo to the model owner,
+is enough. The analysis log, showing what was run and when, completes it.
+
+**Method.**
+1. Write and date the record before the data is opened.
+2. Label every reported result: **confirmatory** if it answers a question in
+   the record, **exploratory** if it does not.
+3. Treat exploratory findings as leads. Confirm them on new data, such as
+   the next review period, before calling them findings.
+4. Report any change to the plan, with its date and reason, rather than
+   silently updating the record.
+
+**Setting the pass criteria.** Pass if every result carries a label, every
+confirmatory claim can be traced to the dated record, and no exploratory
+result is presented as a conclusion.
+
+**Adjacent tests.**
+- **S2** controls false discoveries within the confirmatory set.
+- **S1** guards against choices made on the full data leaking into a
+  performance estimate, the same problem in a different form.
+- **F2 to F4** are where most of the labelled results come from.
+
+**Regulatory hook.** SR 26-2 (documentation). **NIST AI RMF.** MEASURE 2.13.
 
 ### F8. Is the evaluation data fit for purpose
 
-**Objective, method and pass criteria.** Write a datasheet (Gebru et al.)
-for each dataset used in the fairness evaluation, and compare its group
-composition with the live client base. Pass if datasheets exist and gaps are
-stated beside the results.
+**Objective.** Show that the data behind each fairness result contains
+enough of each group, of known origin, for the result to mean something.
+
 **Client harm.** Fairness conclusions rest on data with too few members of
 some groups, or of unknown origin.
-**Regulatory hook.** SR 26-2 (data selection, under conceptual soundness). **NIST AI RMF.** MEASURE 2.1. Related: G5, D7.
+
+**Why existing tests miss it.** Data-quality checks look at fields: missing
+values, formats, ranges. They rarely ask who is in the data, and who is not.
+
+**Data.** Every dataset used in the fairness evaluation (validation samples,
+synthetic personas, production extracts) and the current make-up of the live
+client base.
+
+**Method.**
+1. Write a short datasheet for each dataset (Gebru et al.) covering:
+   - where it came from, and the period it covers;
+   - how group membership was recorded: self-reported, inferred by a proxy
+     method, or assumed;
+   - what is missing, and why;
+   - any consent or usage limits.
+2. Compare each group's share in the evaluation data with its share in the
+   live client base, and flag groups that are under-represented, or so small
+   that F2's power check will call them inconclusive.
+3. For synthetic personas, state how they were generated and which real
+   patterns they may miss.
+
+**Setting the pass criteria.** Pass if every dataset has a datasheet, and
+every fairness result that depends on an under-represented or proxy-defined
+group carries that limitation beside it.
+
+**Adjacent tests.**
+- **G5** and **D7** cover representativeness and label reliability for the
+  model's own data; F8 applies the same checks to the evaluation data.
+- **F2** turns a small group into an "inconclusive" verdict; F8 explains why
+  the group was small.
+
+**Regulatory hook.** SR 26-2 (data selection, under conceptual soundness). **NIST AI RMF.** MEASURE 2.1.
 
 ### F9. Fairness on real usage
 
-**Objective, method and pass criteria.** Repeat the disaggregated evaluation
-periodically on consented production data and reconcile it with the
-validation results. Pass if it runs on schedule and differences are
-explained.
+**Objective.** Repeat the fairness evaluation on real clients after launch,
+and reconcile it with the results from validation.
+
 **Client harm.** Synthetic personas miss how real clients answer and
 interact.
+
+**Why existing tests miss it.** Fairness is usually tested once, before
+launch, on test data. Monitoring after launch tracks performance and
+volumes, rarely outcomes by group.
+
+**Data.** Production outcomes and group membership, used with client consent
+and in line with the firm's data-protection policy, collected on an agreed
+schedule.
+
+**Method.**
+1. Rerun F2 to F4 on each period's production data, with the groups and
+   thresholds from validation unchanged.
+2. Compare each result with its validation counterpart, interval against
+   interval.
+3. Where they differ, find the reason:
+   - a change in the client base (D3);
+   - a change to the model;
+   - a change in how data is recorded;
+   - real behaviour that the test data did not capture.
+
+**Setting the pass criteria.** Agree the schedule (quarterly is common) and
+the size of difference that triggers investigation. Pass if each run happens
+on time, and every difference beyond the trigger is explained or escalated
+within an agreed period.
+
+**Adjacent tests.**
+- **D3** watches for drift in the client base that would change the
+  fairness picture.
+- **F8** documents the production data used.
+- **F10:** a confirmed production finding is one of the triggers for outside
+  review.
+
 **Regulatory hook.** Duty of care (monitoring). **NIST AI RMF.** MEASURE 2.3.
 
 ### F10. When to bring in outside review
 
-**Objective, method and pass criteria.** Agree written triggers for an
-independent outside review (for example, a confirmed F2 finding, a new client
-segment, a material model change). Pass if the triggers are documented and
-followed.
+**Objective.** Decide in advance which events call for an independent review
+from outside the team that built and validated the model.
+
 **Client harm.** Internal evaluators share the blind spots of the team that
 built the model.
+
+**Why existing tests miss it.** Independence is usually satisfied by having
+a separate internal validation team. That team still works inside the same
+firm, with the same assumptions, data and incentives.
+
+**Data.** The written list of triggers, and a log of the events that could
+set one off: findings, model changes, new client segments, complaints.
+
+**Method.**
+1. Agree the triggers with the model owner and compliance. Examples:
+   - a confirmed F2 or F3 finding;
+   - a new client segment, such as a new country or product;
+   - a material model change;
+   - a pattern of complaints from one group.
+2. At each review period, check the event log against the triggers.
+3. When a trigger fires, commission a reviewer with no role in building or
+   validating the model, record what they were asked to examine, and track
+   their findings to closure.
+
+**Setting the pass criteria.** Pass if the triggers are documented, every
+event that met a trigger led to a review, and each review's findings are
+tracked to closure.
+
+**Adjacent tests.**
+- **F7:** outside reviewers need the dated record to tell confirmatory from
+  exploratory results.
+- **F9:** findings in production are a common trigger.
+
 **Regulatory hook.** SR 26-2 (independence, under effective challenge). **NIST AI RMF.** MEASURE 1.3.
 
 ## How the tests fit together
