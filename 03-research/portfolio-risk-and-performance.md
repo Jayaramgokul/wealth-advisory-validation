@@ -30,6 +30,21 @@ choice of method, window or sample is not something a client should rely on.
 | Bengen (1994), *Determining Withdrawal Rates Using Historical Data* | For someone drawing an income, the *order* of returns matters, not just the average. | A separate test for decumulating clients (P4) |
 | Efron (1979); Künsch (1989) | The bootstrap gives intervals without assuming a distribution; resampling *blocks* of days keeps the clustering of volatility. | Intervals on every disclosed risk metric (P2, P5) |
 
+## The simulated market used in the illustrations
+
+All five illustrations use the same 20 years of simulated daily returns for
+three assets: equities, high-quality bonds and cash. The market switches
+between calm spells and crisis spells. A crisis starts on about 1 day in 250
+and, once started, usually lasts several weeks. In a crisis, equities fall
+and become far more volatile while bonds rally, and every day carries a
+fat-tailed shock that hits all assets at once. The three model portfolios
+are named by their equity share: **20/80**, **50/50** and **85/15**. Their
+disclosed annual volatility bands are 6%, 11% and 17%.
+
+Because the data is simulated, the "truth" is known: the tails really are
+fatter than a normal distribution, and bad days really do cluster. A real
+validation would use the firm's own return history in the same way.
+
 ## The tests
 
 Each test below has the same structure. Pass criteria are written as
@@ -59,33 +74,74 @@ figure using the firm's chosen method. If that method is a normal
 (parametric) model, the recalculation agrees with itself and the fat tails are
 never examined.
 
-**Data.** Daily returns for each model portfolio over a long history including
-at least one stress period; the disclosed volatility or loss band.
+**Data.**
+- **Daily returns for each model portfolio** over as long a history as the
+  firm has, and at least one full stress period (2008, March 2020, 2022). A
+  history without a stress period cannot say anything about the tail. Where
+  a portfolio is newer than that, its current weights can be applied to the
+  underlying assets' longer history, provided the reconstruction is stated.
+- **The disclosed risk figure,** exactly as clients see it: a volatility
+  band, a "typical worst year", or a loss range. Its wording decides which
+  horizon and confidence level the test should use.
+- **The method behind the disclosed figure,** from the model documentation,
+  so the test knows which assumption it is checking.
 
 **Method.**
-1. Compute one-month 99% VaR and CVaR three ways: historical simulation (the
-   actual worst months), a parametric normal model, and Monte Carlo (months
-   built from randomly drawn days, which keeps fat-tailed days but loses the
-   clustering of bad days).
-2. Translate the disclosed band into the loss it implies at the same horizon
-   and confidence.
-3. Compare the worst of the three CVaRs with the band-implied loss.
+1. **Build monthly losses** from the daily returns: rolling 21-trading-day
+   sums, so every month-long window in the history counts.
+2. **Estimate one-month 99% VaR and CVaR three ways:**
+   - **historical simulation,** the actual worst months in the history;
+   - **a normal (parametric) model,** using the average and standard
+     deviation of monthly returns, which is what most volatility-based
+     disclosures assume implicitly;
+   - **Monte Carlo,** building many months from randomly drawn days. This
+     keeps the fat-tailed days but loses the tendency of bad days to arrive
+     together.
+3. **Translate the disclosed band into a loss** at the same horizon and
+   confidence. For a volatility band, this is the 99% point of a normal
+   distribution: about 2.33 times the band divided by the square root of 12.
+4. **Compare,** reporting how far apart the three methods are, and the ratio
+   of the worst CVaR to the band-implied loss.
 
-**Setting the pass criteria.** Agree in advance (a) how far apart the methods
-may be before the choice of method needs justifying, and (b) how far the worst
-CVaR may exceed the band-implied loss before the band must be widened or the
-disclosure reworded.
+**Setting the pass criteria.** Agree two numbers in advance:
+- **How far apart the methods may be** before the choice of method needs a
+  written justification. A normal model well below the historical figure is
+  the usual sign that the disclosure understates the tail.
+- **How far the worst CVaR may exceed the band-implied loss** before the band
+  must be widened, or the disclosure reworded to describe tail losses
+  separately.
 
-**What the illustration shows.** In the simulated data the normal model gives
-the smallest tail loss for every portfolio. For the 85/15 portfolio,
-historical CVaR is 15.2% against 11.5% from the normal model, and the
-disclosed band implies about 11.4%. Monte Carlo (14.2%) sits between the two: it keeps the fat-tailed days
-but not their tendency to arrive together. A band built on the normal model
-looks consistent with itself and is still optimistic.
+The second threshold is a judgement about what clients would reasonably take
+the band to mean. A band presented as "how much you could lose" deserves a
+tighter threshold than one clearly labelled as typical volatility.
+
+**What the illustration shows.**
+
+| Portfolio | Historical CVaR | Normal-model CVaR | Monte Carlo CVaR | Loss implied by the band | Worst CVaR ÷ band |
+|---|---|---|---|---|---|
+| 20/80 | 4.1% | 3.3% | 4.6% | 4.0% | 1.1× |
+| 50/50 | 8.7% | 6.8% | 8.6% | 7.4% | 1.2× |
+| 85/15 | 15.2% | 11.5% | 14.2% | 11.4% | 1.3× |
+
+The normal model gives the smallest tail loss for every portfolio, and it
+agrees with the band almost exactly. A review that recalculated the
+disclosure with the same normal model would pass it. The actual history says
+the worst months of the 85/15 portfolio average 15.2%, a third more than the
+band implies. Monte Carlo sits between the two because it keeps the
+fat-tailed days but not their clustering, which is a reminder that the
+clustering itself carries risk. The gap grows with the equity share, so the
+clients told the most about risk are told the least accurately.
 [`p1_tail_risk_three_ways.py`](../05-illustrations/p1_tail_risk_three_ways.py)
 
-**Adjacent tests.** P5 puts intervals on the volatility figure itself; P1 asks
-whether volatility is even the right summary of the tail.
+**Adjacent tests.**
+- **P5** asks whether the volatility figure itself is reliable. P1 asks
+  whether volatility is even the right summary of the tail; a portfolio can
+  pass P5 and fail P1, as these illustrations show.
+- **D4** stresses the correlations between assets, which drive how
+  portfolios lose money together in a crisis.
+- **R1** explains why returns must be treated as dependent when building
+  intervals for any of these figures.
+
 **Regulatory hook.** Disclosure of risks and limitations (SEC IM Guidance
 2017-02); Marketing Rule fair and balanced presentation.
 **NIST AI RMF.** MEASURE 2.5 (valid and reliable; limits of generalisation documented).
@@ -108,31 +164,67 @@ portfolio whose advantage is noise.
 the right formula and risk-free rate. They rarely ask whether the comparison
 is statistically supported.
 
-**Data.** Daily returns per portfolio; the risk-free rate used; any claim
-made in client material.
+**Data.**
+- **Daily returns for each portfolio,** over the period the claim refers to.
+- **The risk-free rate** used to compute excess returns, and its source.
+- **Every claim in client material** that ranks or compares portfolios on
+  risk-adjusted return, word for word, with the period it covers. The claim
+  decides which comparison is tested; a claim about the last three years is
+  tested on those three years, not on the full history.
 
 **Method.**
-1. Compute Sharpe and Sortino for each portfolio.
-2. Resample the history in blocks of consecutive days (moving-block
-   bootstrap) many times, recomputing both ratios each time. Blocks preserve
-   the clustering of volatility that single-day resampling destroys (R1).
-3. For each claimed ranking, take the bootstrap distribution of the
-   *difference* and its 95% interval.
+1. **Compute the ratios.** Sharpe: average excess return over its standard
+   deviation, annualised. Sortino: the same, but dividing by downside
+   deviation only, which counts only the days that lose money.
+2. **Resample the history in blocks** of consecutive days (a moving-block
+   bootstrap, 21-day blocks here), 1,000 times, recomputing the ratios each
+   time. Resampling single days would treat every day as independent and
+   destroy the clustering of volatility, giving intervals that are too narrow
+   (R1).
+3. **Test the claim, not just each ratio.** Overlapping intervals for two
+   portfolios do not settle a comparison either way. For each claimed
+   ranking, take the bootstrap distribution of the *difference* in ratios and
+   its 95% interval.
+4. **Report** each ratio with its interval, and each claimed difference with
+   its interval and verdict.
 
-**Setting the pass criteria.** A ranking is supported only if the interval of
-the difference excludes zero. Agree in advance what counts as "only just"
-(how close to zero the interval may come), because a fragile ranking should
-not appear in marketing without qualification.
+**Setting the pass criteria.**
+- **Supported:** the interval of the difference excludes zero with room to
+  spare.
+- **Fragile:** it excludes zero, but its nearer end is within an agreed
+  margin of zero (here 0.02). A slightly different history could reverse it,
+  so the claim should not appear in marketing without qualification.
+- **Not supported:** the interval includes zero. The claim should be
+  withdrawn.
 
-**What the illustration shows.** The individual intervals overlap heavily.
-The difference between 50/50 and 85/15 excludes zero, but only just
-(upper end −0.001), so the script labels the claim fragile rather than
-supported.
+The margin for "fragile" is agreed in advance with compliance, because it
+decides which claims reach clients.
+
+**What the illustration shows.**
+
+| Portfolio | Sharpe (95% interval) | Sortino (95% interval) |
+|---|---|---|
+| 20/80 | 0.41 (−0.01 to 0.84) | 0.56 (0.06 to 1.31) |
+| 50/50 | 0.24 (−0.19 to 0.69) | 0.33 (−0.16 to 1.06) |
+| 85/15 | 0.14 (−0.29 to 0.58) | 0.19 (−0.26 to 0.86) |
+
+Every interval is wide, and every pair overlaps heavily. Taken one at a time,
+they suggest that nothing can be said. The direct comparison of 85/15 with
+50/50 is sharper: the Sharpe difference is −0.093, with an interval of
+−0.186 to −0.001. The interval excludes zero, so 50/50 did deliver the
+better risk-adjusted return, but its upper end is within 0.001 of zero. Under
+the agreed margin, the claim is fragile and would need qualifying before it
+appeared in client material.
 [`p2_sharpe_sortino_intervals.py`](../05-illustrations/p2_sharpe_sortino_intervals.py)
 
-**Adjacent tests.** R1 (dependent data) explains why ordinary bootstrap
-intervals would be too narrow here; S2 (multiple testing) applies when many
-pairwise rankings are claimed.
+**Adjacent tests.**
+- **R1** explains why ordinary bootstrap intervals would be too narrow here.
+- **S2** applies when many pairwise rankings are claimed at once: with three
+  portfolios there are three comparisons, and the chance of a spurious
+  "winner" grows with every one.
+- **C1** uses the same comparative logic for own-brand products against a
+  neutral benchmark.
+
 **Regulatory hook.** Marketing Rule: performance fair and balanced; a
 reasonable basis to substantiate material statements of fact.
 **NIST AI RMF.** MEASURE 2.5.
@@ -158,30 +250,64 @@ clients carry risk that nobody decided they should carry.
 firm uses. It does not rerun the process with a reasonable alternative and
 compare outcomes.
 
-**Data.** Daily returns; the process that turns a volatility estimate into
-exposure (here, scaling a portfolio towards its disclosed band); the band.
+**Data.**
+- **Daily returns** for the portfolio, over a history with both calm and
+  stressed periods, since that is where the estimators differ.
+- **The rule that turns a volatility forecast into exposure.** Here, the
+  portfolio's exposure is scaled each day towards its disclosed band (band ÷
+  forecast, capped at 1.5). In a real model it might be a rebalancing
+  trigger or a risk-band assignment.
+- **The disclosed band** the rule targets.
+- **The estimator the firm actually uses,** with its parameters, and at least
+  one reasonable alternative.
 
 **Method.**
-1. Forecast volatility each day with both estimators.
-2. Apply the same exposure rule using each forecast.
-3. Compare forecast error against realised next-month volatility, the share of
-   days above 1.25 times the band, and the average exposure.
+1. **Forecast volatility each day with both estimators,** using only data
+   available that day: a one-year equal-weighted standard deviation, and an
+   EWMA with λ = 0.94.
+2. **Apply the same exposure rule** with each forecast.
+3. **Compare three things:**
+   - **forecast error:** how far each forecast is from the volatility
+     actually realised over the next month;
+   - **breaches:** the share of days on which the held portfolio's
+     volatility runs above 1.25 times the band;
+   - **average exposure:** the average scaling applied, which is how much
+     risk clients actually carried.
+4. **Look at the stress periods separately.** EWMA reacts within days to a
+   crisis, while a one-year window takes months; an average over 20 years can
+   hide a large difference during the weeks that matter most.
 
-**Setting the pass criteria.** Fix materiality before running: here, a
-difference of more than 2 percentage points in days in breach, or more than
-0.10 in the average risk scale (the multiplier applied to exposure). Below that, record the test so the choice is
-evidenced; above it, the choice needs a documented rationale.
+**Setting the pass criteria.** Fix materiality before running. Here: a
+difference of more than 2 percentage points in the share of days in breach,
+or more than 0.10 in the average exposure scale.
+- **Below both:** outcomes are robust to the choice. Record the test, so the
+  choice is evidenced.
+- **Above either:** the choice is material, and needs a documented rationale
+  and sign-off. Material differences concentrated in stress periods should
+  be reported separately.
 
-**What the illustration shows.** EWMA forecasts slightly better (3.9% error
-against 4.1%), but outcomes barely differ: breach days are within 0.1 points
-and exposure differs by 0.05. Under the pre-agreed thresholds, the result is
-that outcomes are robust to the choice. That is a useful finding too, as long
-as it is evidenced.
+**What the illustration shows.** On the 50/50 portfolio, EWMA forecasts
+slightly better: its average error is 3.9 percentage points against 4.1 for
+the one-year window. Client outcomes barely differ. Both put the portfolio
+above 1.25 times its band on 17.9% of days, and the average exposure scale is
+1.25 against 1.30, a difference of 0.05. Under the pre-agreed thresholds, the
+result is that outcomes are robust to the choice.
+
+That is a useful finding too, because the firm can now say why the choice of
+estimator does not matter for clients, with evidence. The high breach rate
+under either estimator is a separate point: it says the exposure rule itself
+lets volatility run well above the band in crises, whichever forecast feeds
+it.
 [`p3_ewma_vs_sample_volatility.py`](../05-illustrations/p3_ewma_vs_sample_volatility.py)
 
-**Adjacent tests.** D3 (input drift) would trigger a rerun when the market
-regime changes; O1 (single-feature dominance) is the equivalent question for
-the client-placement model.
+**Adjacent tests.**
+- **D3** watches for changes in market conditions or inputs that would make
+  the test worth rerunning.
+- **O1** asks the same kind of question for the client-placement model:
+  whether one input or choice drives the outcome.
+- **O3** compares the model with a challenger more generally; P3 is a
+  focused challenger test for one component.
+
 **Regulatory hook.** SR 26-2: conceptual soundness; testing alternative assumptions and methodologies.
 **NIST AI RMF.** MEASURE 2.5.
 
@@ -204,32 +330,69 @@ ample but whose ordering risk could exhaust their savings.
 return and volatility, the right lens for someone saving. They do not change
 the lens when the client starts drawing an income.
 
-**Data.** Annual returns per portfolio; the withdrawal pattern the model
-assumes; the planning horizon.
+**Data.**
+- **Annual returns for each portfolio** recommended to clients in
+  decumulation, over a long history.
+- **The withdrawal pattern the model assumes:** a fixed amount, a fixed
+  percentage of the current balance, or an amount rising with inflation.
+  Bengen's 4% rule uses the last of these, and the choice changes the answer
+  considerably.
+- **The planning horizon** the model uses, such as 30 years, and whether it
+  varies with the client's age.
+- **Which clients the model treats as decumulating,** so the test is applied
+  to the portfolios those clients are actually offered.
 
 **Method.**
-1. Take the portfolio's annual returns over the horizon (Bengen used 30 years).
-2. Reorder them many times. The average return is identical in every
-   ordering; only the sequence changes.
-3. Apply the withdrawal pattern each time and count how often the money runs
-   out before the horizon.
+1. **Take the portfolio's annual returns** over the planning horizon.
+2. **Reorder them many times** (5,000 here). Every ordering contains exactly
+   the same returns, so the average return is identical in all of them; only
+   the sequence changes.
+3. **Apply the withdrawal pattern** to each ordering, year by year, and
+   record whether the money runs out before the horizon, and when.
+4. **Report the depletion probability** per portfolio, and the spread of
+   ending wealth, from the worst orderings to the best.
 
 **Setting the pass criteria.** Agree a maximum depletion probability for each
-client segment with the business and compliance, and require that the
-recommendation logic and disclosures reflect it.
+client segment with the business and compliance. A client with other secure
+income can carry more depletion risk than one relying on the portfolio
+alone. Then require that:
+- the recommendation logic does not place decumulating clients in portfolios
+  above that limit;
+- disclosures for decumulating clients describe the sequence risk in plain
+  terms.
 
-**What the illustration shows.** Withdrawing 4% of the starting value each
-year for 30 years, the money runs out in 0.0% of orderings for 20/80, 5.1%
-for 50/50 and 24.3% for 85/15, even though 85/15 has the
-highest average return and that average is the same in every ordering.
+**What the illustration shows.** The script turns 30 years of simulated
+daily returns into 30 annual returns per portfolio, and withdraws 4% of the
+starting value each year, a fixed amount rather than one rising with
+inflation.
+
+| Portfolio | Average annual return | Runs out within 30 years |
+|---|---|---|
+| 20/80 | 3.2% | 0.0% of orderings |
+| 50/50 | 3.9% | 5.1% of orderings |
+| 85/15 | 4.6% | 24.3% of orderings |
+
+The 85/15 portfolio has the highest average return, and that average is the
+same in every ordering, yet it runs out in nearly a quarter of them. The
+chart shows the reason: the same returns with the bad years first and with
+the good years first lead to opposite outcomes. A suitability check based on
+average return and volatility would rank 85/15 as the better choice for
+growth, and miss that it is the riskiest choice for someone drawing an
+income.
 
 **Limitation.** Reordering one history isolates the effect of order. It does
 not explore histories with different returns, so a full test would also run
 the same exercise on block-bootstrapped histories (as in P5).
 [`p4_sequence_of_returns.py`](../05-illustrations/p4_sequence_of_returns.py)
 
-**Adjacent tests.** F3 reports outcomes for older clients separately; U2
-routes borderline cases to a human.
+**Adjacent tests.**
+- **F3** reports outcomes for older clients separately, so a poor result for
+  them is not hidden in an average.
+- **U2** routes borderline cases, such as a client close to retirement with
+  no other income, to a human adviser.
+- **U1** weighs the cost of mistakes; for a retiree, too much risk is
+  usually the costlier error.
+
 **Regulatory hook.** Duty of care (IA-5248); retirement accounts (DOL PTE
 2020-02); senior investors (FINRA Rule 2165).
 **NIST AI RMF.** MEASURE 2.6 (safety risks evaluated; residual risk within tolerance).
@@ -251,25 +414,49 @@ by an ordinary bad stretch, and the client was never told that was likely.
 **Why existing tests miss it.** Reviews compare the point estimate with the
 band. A point estimate inside the band looks like a pass.
 
-**Data.** Daily returns per portfolio; the disclosed bands.
+**Data.**
+- **Daily returns per portfolio** over the history used to set the band.
+- **Each disclosed figure,** with its definition: annual volatility, maximum
+  drawdown, or both.
+- **The period the disclosure is meant to cover,** since a band described as
+  "long-run" should be tested on a long history.
 
 **Method.**
-1. Block-bootstrap the return history many times.
-2. Recompute annual volatility (and, if disclosed, maximum drawdown) each time.
-3. Compare the 97.5th percentile with the band.
+1. **Block-bootstrap the return history** 1,000 times, drawing 21-day blocks
+   of consecutive days so that volatile spells stay together.
+2. **Recompute each disclosed metric** on every resampled history: annual
+   volatility and, if disclosed, maximum drawdown.
+3. **Take the 2.5th and 97.5th percentiles** as the 95% interval.
+4. **Compare the upper end with the band,** for each portfolio and each
+   metric.
 
-**Setting the pass criteria.** Pass if the upper end of the interval is inside
-the band; otherwise widen the band or reduce the portfolio's risk. Agree the
-confidence level in advance.
+**Setting the pass criteria.** Agree the confidence level in advance (95%
+here).
+- **Pass:** the upper end of the interval is inside the band.
+- **Fail:** the upper end is outside, even if the point estimate is inside.
+  The remedy is to widen the band, reduce the portfolio's risk, or state the
+  uncertainty in the disclosure.
 
-**What the illustration shows.** All three portfolios pass on volatility (the
-85/15 upper end is 16.8% against a 17% band). Set beside P1, the same
-85/15 portfolio has tail losses well beyond what that band implies.
-Passing on volatility does not settle the question of tail risk, which is why
-the two tests sit together.
+**What the illustration shows.**
+
+| Portfolio | Annual volatility (95% interval) | Disclosed band | Verdict |
+|---|---|---|---|
+| 20/80 | 4.8% (4.4% to 5.2%) | 6% | Inside |
+| 50/50 | 9.3% (8.4% to 10.1%) | 11% | Inside |
+| 85/15 | 15.3% (13.8% to 16.8%) | 17% | Inside, with little room |
+
+All three portfolios pass on volatility. The 85/15 upper end, 16.8% against a
+17% band, leaves almost no margin. Set beside P1, the same 85/15 portfolio
+has tail losses a third larger than its band implies. Passing on volatility
+does not settle the question of tail risk, which is why the two tests sit
+together.
 [`p5_intervals_on_risk_metrics.py`](../05-illustrations/p5_intervals_on_risk_metrics.py)
 
-**Adjacent tests.** P1 (tail shape); R1 (dependent data).
+**Adjacent tests.**
+- **P1** tests the shape of the tail, which volatility does not describe.
+- **R1** explains why the bootstrap must use blocks of days.
+- **D4** shows how stressed correlations widen the range further.
+
 **Regulatory hook.** Disclosure of risks (SEC IM Guidance 2017-02); Marketing
 Rule.
 **NIST AI RMF.** MEASURE 2.5.
