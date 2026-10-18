@@ -305,7 +305,7 @@ it.
   the test worth rerunning.
 - **O1** asks the same kind of question for the client-placement model:
   whether one input or choice drives the outcome.
-- **O3** compares the model with a challenger more generally; P3 is a
+- **O2** and **O3** compare the whole model with challengers; P3 is a
   focused challenger test for one component.
 
 **Regulatory hook.** SR 26-2: conceptual soundness; testing alternative assumptions and methodologies.
