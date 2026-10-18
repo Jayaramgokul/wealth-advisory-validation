@@ -47,21 +47,57 @@ each fold.
 The leak is in the steps before it, which may sit in a different notebook or
 team.
 
-**Data.** The full development pipeline, from raw features to final model.
+**Data.**
+- **The full development pipeline,** from raw data to final model, as code
+  that can be rerun: cleaning, feature construction, screening, selection,
+  tuning and threshold setting.
+- **The documented performance figure,** and how it was produced.
+- **The development data,** so the pipeline can be rebuilt end to end.
 
 **Method.**
-1. List every step that uses the outcome: screening, selection, tuning,
-   threshold setting.
-2. Rebuild the pipeline so all of them run inside each training fold.
-3. Compare the nested estimate with the documented one.
+1. **List every step that uses the outcome.** Screening features by their
+   correlation with the outcome, choosing among models, tuning settings and
+   setting cut-offs all count. Steps that never look at the outcome, such as
+   standardising a column, are usually safe.
+2. **Rebuild the pipeline so all of them run inside each training fold.**
+   The held-out fold must play no part in any choice, only in the final
+   scoring. Where tuning is involved, this means a cross-validation inside
+   each training fold: "nested" cross-validation.
+3. **Compare the nested estimate with the documented one.** A large drop
+   means the documented figure measured partly memorised data.
+4. **Check for leaks outside the code,** such as a feature list agreed in a
+   meeting after someone had looked at all the data.
 
-**Setting the pass criteria.** The documented performance is the nested
-figure, or the gap is explained and immaterial.
+**Setting the pass criteria.** Pass if the documented performance is the
+nested figure, or the gap between the two is explained and immaterial. A
+material gap means the documented figure is replaced by the nested one, and
+any decision made on it is revisited.
 
-**What the illustration shows.** With a random outcome (true accuracy 50%),
-choosing 20 of 2,000 features on all the data and then cross-validating
-reports 76%. Repeating the choice inside each fold gives 52%.
+**What the illustration shows.** The script gives 200 simulated clients a
+random outcome and 2,000 random features, so no model can do better than
+50%. A common shortcut picks the 20 features most related to the outcome
+using all the data, then cross-validates a model on those 20.
+
+| Procedure | Reported accuracy |
+|---|---|
+| Features chosen on all the data, then cross-validated | 76% |
+| Feature choice repeated inside each fold | 52% |
+| The truth | 50% |
+
+The shortcut reports 76% on pure noise, because the 20 features were chosen
+partly for how well they happened to fit the clients later used to test
+them. Repeating the choice inside each fold brings the figure back to chance.
+The cross-validation code is identical in both; only the place where the
+features are chosen differs.
 [`s1_nested_cross_validation.py`](../05-illustrations/s1_nested_cross_validation.py)
+
+**Adjacent tests.**
+- **D2** is the same kind of leak in time: future information used in a
+  past decision.
+- **S5** asks whether the model is too flexible for its data, which makes
+  any leak worse.
+- **F7** keeps choices made after seeing the data out of confirmatory
+  results.
 
 **Regulatory hook.** SR 26-2 (outcomes analysis). **NIST AI RMF.** MEASURE 2.5.
 
@@ -82,21 +118,49 @@ dismissed as noisy and real failures are ignored.
 **Why existing tests miss it.** Each test is designed and read on its own.
 Nobody counts how many were run.
 
-**Data.** Every p-value the suite produces, collected in one table.
+**Data.** Every p-value the validation produces, collected in one table with
+the test, group and bucket it came from. This includes tests that came back
+clean: leaving them out makes the correction too weak.
 
 **Method.**
-1. Gather all p-values: every test, group and bucket.
-2. Apply Benjamini-Hochberg at the agreed rate.
-3. Report findings from the corrected table only. Keep uncorrected results
-   as exploratory (F7).
+1. **Gather all p-values** in one table: every test, every group, every
+   bucket, every period.
+2. **Apply the Benjamini–Hochberg procedure** at the agreed rate. It ranks
+   the p-values and adjusts each one for how many tests were run, giving a
+   q-value. Flagging results with q below 5% means that, on average, no more
+   than 5% of the flagged results are false alarms.
+3. **Report findings from the corrected table only.** Results that are
+   significant before correction but not after are kept, but labelled
+   exploratory (F7) and followed up on new data.
+4. **Group tests sensibly.** Tests that answer separate questions for
+   separate audiences can be corrected in separate families, as long as the
+   families are fixed before the results are seen.
 
-**Setting the pass criteria.** Every pass or fail statement in the report is
+**Setting the pass criteria.** Agree the false discovery rate and the
+families in advance. Pass if every pass or fail statement in the report is
 backed by the corrected table.
 
-**What the illustration shows.** Of 300 segments, 10 are genuinely worse.
-Reading each test at p < 0.05 flags 15: 9 real and 6 false alarms. With the
-false discovery rate controlled at 5%, the suite flags 9, all real.
+**What the illustration shows.** The script simulates 300 client segments of
+150 to 400 clients each. Most are suitably served 80% of the time; ten are
+genuinely worse, at 68%. Each segment is tested for being below 80%.
+
+| Reading | Segments flagged | Real problems | False alarms |
+|---|---|---|---|
+| Each test at p < 0.05 | 15 | 9 | 6 |
+| False discovery rate controlled at 5% | 9 | 9 | 0 |
+
+Reading each test alone flags 15 segments, and 6 of them are noise: two in
+five flagged findings would send someone chasing a problem that does not
+exist. With the false discovery rate controlled, all 9 flags are real. One of
+the ten real problems is missed either way, because its segment happened to
+look fine in this sample; correction costs very little here and removes
+every false alarm.
 [`s2_multiple_testing.py`](../05-illustrations/s2_multiple_testing.py)
+
+**Adjacent tests.**
+- **F3** compares many intersectional cells and relies on this correction.
+- **F7** labels results that do not survive it as exploratory.
+- **P2** applies it when several portfolio rankings are claimed at once.
 
 **Regulatory hook.** SR 26-2 (effective challenge). **NIST AI RMF.** MEASURE 2.13.
 
@@ -119,21 +183,58 @@ reliable.
 **Why existing tests miss it.** The feature list comes from one fit and is
 reviewed for plausibility, not stability.
 
-**Data.** The development data and the selection procedure.
+**Data.**
+- **The development data** and the exact selection procedure, with its
+  settings (such as the lasso penalty).
+- **Every place the selected factors are described:** model documentation,
+  client disclosures, explanations of individual recommendations.
 
 **Method.**
-1. Repeat the selection on many bootstrap resamples with the same settings.
-2. Record how often each feature is selected.
-3. Compare with the disclosed list.
+1. **Repeat the selection on many bootstrap resamples** (200 here), with the
+   same procedure and settings each time.
+2. **Record how often each factor is selected.** A factor that really drives
+   the outcome should be chosen almost every time.
+3. **Compare with the disclosed list:** which disclosed factors are stable,
+   and which were chosen by luck in the one fit that was documented.
+4. **Look at correlated groups.** Where two factors take turns being
+   selected, describe the group, such as "income and liquid assets", rather
+   than whichever member happened to win.
 
-**Setting the pass criteria.** Every disclosed driver is selected in at
-least an agreed share of resamples (for example, 80%).
+**Setting the pass criteria.** Agree a selection frequency in advance (for
+example, 80%). Pass if every factor described to clients or governance as a
+driver reaches it. Factors below it are removed from the description, or
+described as a group with the factors they trade places with.
 
-**What the illustration shows.** One lasso fit selects six factors. Across
-200 resamples, only income and horizon are selected every time; experience
-76%; savings rate, home ownership and liquid assets between 48% and 60%.
-Liquid assets track income, and the two take turns.
+**What the illustration shows.** The script simulates 300 clients with 12
+characteristics. The outcome truly depends on three of them: income and
+investment horizon strongly, experience more weakly. Liquid assets are
+strongly correlated with income, and age with horizon, but neither has an
+effect of its own.
+
+| Factor | In the one documented fit | Selected across 200 resamples |
+|---|---|---|
+| Income | yes | 100% |
+| Horizon | yes | 100% |
+| Experience | yes | 76% |
+| Savings rate | yes | 60% |
+| Home owner | yes | 57% |
+| Liquid assets | yes | 48% |
+| Six other factors | no | 24–43% |
+
+The one documented fit names six drivers. Only income and horizon are
+chosen every time. Experience, a real but weaker effect, comes close.
+Savings rate and home ownership have no effect at all, yet the documented fit
+included them; they were selected by luck in that sample. Liquid assets
+trades places with income, since the two carry much the same information.
+Telling clients their advice depends on these six factors would be partly
+untrue.
 [`s3_selection_stability.py`](../05-illustrations/s3_selection_stability.py)
+
+**Adjacent tests.**
+- **U6** asks whether the data supports each input at all; S3 asks whether
+  the choice of inputs is stable.
+- **O1** checks whether a single input dominates the recommendation.
+- **F1** tests the inputs that should never matter.
 
 **Regulatory hook.** Disclosure of how the algorithm works (SEC IM Guidance
 2017-02). **NIST AI RMF.** MEASURE 2.9.
@@ -142,25 +243,74 @@ Liquid assets track income, and the two take turns.
 
 ### S4. Bias-variance decomposition
 
-**Objective, method and pass criteria.** Refit the model on bootstrap
-resamples and split its error, per risk bucket, into bias (systematically
-wrong), variance (unstable) and noise (Hastie et al., 7.3). Pass if the
-dominant source is identified for every bucket that misses its target.
+**Objective.** For each risk band where the model misses its target, find
+whether the error comes from the model being systematically wrong (bias),
+unstable (variance) or from noise that no model could remove.
 
 **Client harm.** The wrong fix is applied: more data for a model that is
 biased, or a more complex model when the problem is instability.
+
+**Why existing tests miss it.** Validation reports the total error. The same
+total can come from very different causes, each needing a different remedy.
+
+**Data.** The development data and training procedure, so the model can be
+refitted many times, and held-out clients with a reference outcome.
+
+**Method.**
+1. **Refit the model on many bootstrap resamples** of the development data.
+2. **For each held-out client,** compare the average prediction across refits
+   with the reference outcome (the bias) and measure how much the predictions
+   vary between refits (the variance), following Hastie et al., 7.3.
+3. **Estimate the noise** from the reliability of the reference labels (D7),
+   since no model can be more accurate than its labels.
+4. **Summarise by risk band** and by client group, since the dominant source
+   can differ between them.
+
+**Setting the pass criteria.** Pass if the dominant source of error is
+identified for every band that misses its target, and the remediation plan
+matches it: a richer model or better inputs for bias, more data or a simpler
+model for variance, better labels for noise.
+
+**Adjacent tests.**
+- **S5** helps explain high variance: a model too flexible for its data.
+- **D7** sets the noise floor from label reliability.
 
 **Regulatory hook.** SR 26-2 (outcomes analysis). **NIST AI RMF.** MEASURE 2.5.
 
 ### S5. Effective complexity against data
 
-**Objective, method and pass criteria.** Estimate effective degrees of
-freedom for each component (Hastie et al., 7.6) and compare with the size of
-the validation data. Pass if the ratio is within an agreed limit, or a
-written justification exists.
+**Objective.** Check that each part of the model is no more flexible than its
+data can support.
 
 **Client harm.** A model too flexible for its data looks good in validation
 and disappoints in use.
+
+**Why existing tests miss it.** Complexity is usually judged by the number of
+inputs or parameters, which can mislead in both directions: a heavily
+regularised model with many parameters may be simple in practice, and a
+small model with many interactions may not be.
+
+**Data.** Each model component and its training data, including how many
+clients sit in each segment the component treats separately.
+
+**Method.**
+1. **Estimate effective degrees of freedom** for each component (Hastie et
+   al., 7.6): how much the fitted values move when the outcomes move, which
+   measures how much the model has actually fitted.
+2. **Compare with the data available,** overall and in each segment the model
+   treats separately, since a component can be well supported overall and
+   thin in one segment.
+3. **Compare training and held-out performance.** A large gap is the usual
+   symptom of too much flexibility.
+
+**Setting the pass criteria.** Agree a limit on effective complexity relative
+to the data (for example, a minimum number of clients per effective degree
+of freedom). Pass if every component is within it, or has a written
+justification and a held-out performance check that supports it.
+
+**Adjacent tests.**
+- **S1** checks the performance estimate that flexibility can inflate.
+- **S4** shows the variance that too much flexibility creates.
 
 **Regulatory hook.** SR 26-2 (conceptual soundness). **NIST AI RMF.** MEASURE 2.5.
 
