@@ -10,7 +10,13 @@ same. Is one of them more honest about its uncertainty?
     python 05-illustrations/u8_proper_scoring.py
 """
 
-import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+
+from common import save  # noqa: E402
 
 
 def sharpen(p, power):
@@ -36,6 +42,18 @@ def main():
           "50% a probability falls. Proper scoring rules (log loss, Brier) reward honest probabilities.\n"
           "Any layer whose probabilities drive decisions, such as the refer-to-human rule in U2, should\n"
           "be trained and judged on one.")
+    edges = np.linspace(0, 1, 11)
+    fig, ax = plt.subplots(figsize=(4, 4))
+    ax.plot([0, 1], [0, 1], color="#bbbbbb", lw=1)
+    for name, p in models.items():
+        b = np.clip(np.digitize(p, edges) - 1, 0, 9)
+        used = [k for k in range(10) if (b == k).any()]
+        ax.plot([p[b == k].mean() for k in used], [y[b == k].mean() for k in used], "o-", label=name)
+    ax.set_xlabel("Predicted probability")
+    ax.set_ylabel("How often it happened")
+    ax.legend(frameon=False)
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 'u8_reliability')}")
 
 
 if __name__ == "__main__":

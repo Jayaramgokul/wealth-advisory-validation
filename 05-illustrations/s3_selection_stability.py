@@ -11,9 +11,15 @@ if the data were slightly different?
     python 05-illustrations/s3_selection_stability.py
 """
 
-import numpy as np
-from sklearn.linear_model import Lasso, LassoCV
-from sklearn.preprocessing import StandardScaler
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+from sklearn.linear_model import Lasso, LassoCV  # noqa: E402
+from sklearn.preprocessing import StandardScaler  # noqa: E402
+
+from common import save  # noqa: E402
 
 NAMES = ["income", "savings rate", "horizon", "age", "dependants", "debt ratio", "experience", "home owner",
          "employment years", "liquid assets", "pension", "region index"]
@@ -42,6 +48,14 @@ def main():
     print("\nWhat this shows: correlated factors take turns being chosen, so a single fit's list is partly\n"
           "luck. Only factors selected in a high share of resamples (agreed in advance) should be\n"
           "described to clients as what drives the advice.")
+    order = np.argsort(freq)
+    fig, ax = plt.subplots(figsize=(6, 3.4))
+    ax.barh(np.arange(len(NAMES)), freq[order], color=["#3182bd" if single[i] else "#bdbdbd" for i in order])
+    ax.set_yticks(np.arange(len(NAMES)), [NAMES[i] for i in order])
+    ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel("Share of 200 resamples selecting it; blue = in the single fit")
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 's3_selection_frequency')}")
 
 
 if __name__ == "__main__":

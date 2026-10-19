@@ -9,10 +9,14 @@ lean the same way?
     python 05-illustrations/g2_direction_of_errors.py
 """
 
-import numpy as np
-from scipy import stats
+import matplotlib
 
-from common import bucket, questionnaire, wilson
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+from scipy import stats  # noqa: E402
+
+from common import bucket, questionnaire, save, wilson  # noqa: E402
 
 
 def main():
@@ -39,6 +43,17 @@ def main():
     print("\nWhat this shows: north and south are misplaced about as often as each other, so an error-rate\n"
           "check passes them both. But north's clients are pushed into too much risk and south's into too\n"
           "little: different harms, needing different fixes. Report the direction, not just the rate.")
+    regions = list(counts)
+    x = np.arange(len(regions))
+    fig, ax = plt.subplots(figsize=(6, 2.8))
+    ax.bar(x - 0.2, [counts[r][0] / counts[r][2] for r in regions], 0.4, color="#d8543b", label="placed too aggressively")
+    ax.bar(x + 0.2, [counts[r][1] / counts[r][2] for r in regions], 0.4, color="#3182bd", label="placed too cautiously")
+    ax.set_xticks(x, regions)
+    ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
+    ax.set_ylabel("Share of the region's clients")
+    ax.legend(frameon=False)
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 'g2_direction_of_errors')}")
 
 
 if __name__ == "__main__":

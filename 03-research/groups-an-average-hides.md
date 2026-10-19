@@ -135,6 +135,13 @@ would treat them alike. Split by direction, north's clients are pushed into
 too much risk and south's into too little: opposite harms, needing opposite
 fixes. The chi-square test confirms the split differs across regions (p ≈
 10⁻¹²²).
+
+![Misplacement by region, split by direction](../05-illustrations/output/g2_direction_of_errors.png)
+
+*North and south are misplaced about equally often, but their bars lean
+opposite ways: north's errors are mostly too aggressive, south's mostly too
+cautious. East and west are balanced.*
+
 [`g2_direction_of_errors.py`](../05-illustrations/g2_direction_of_errors.py)
 
 **Adjacent tests.**

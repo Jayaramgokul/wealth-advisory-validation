@@ -95,6 +95,13 @@ survivors looks 1.3 points a year better than anything an investor could
 have achieved, and over ten years the gap compounds to 13%. Elton, Gruber
 and Blake found close to 1% a year in real US fund data, so the simulation
 is in the same range.
+
+![Growth of a backtest on today's survivors against the full universe](../05-illustrations/output/d1_survivorship.png)
+
+*Growth of 1 spread equally across funds. The survivors' line pulls away
+from the full universe year after year, because the funds that closed, and
+the losses they took, are missing from it.*
+
 [`d1_survivorship_bias.py`](../05-illustrations/d1_survivorship_bias.py)
 
 **Adjacent tests.**
@@ -302,6 +309,12 @@ its safety comes from the bonds. Its crisis volatility rises by 41%, against
 3% for the most aggressive portfolio, whose clients already expect large
 swings. The clients least able to absorb a surprise are the ones the
 historical data reassures most.
+
+![Crisis volatility with the bond hedge working and failing](../05-illustrations/output/d4_stressed_correlation.png)
+
+*Blue is crisis volatility as in the data; red assumes the hedge fails. The
+20/80 portfolio has the largest relative jump, the 85/15 almost none.*
+
 [`d4_stressed_correlation.py`](../05-illustrations/d4_stressed_correlation.py)
 
 **Adjacent tests.**

@@ -10,9 +10,13 @@ relationship failed, as it did in 2022 when stocks and bonds fell together?
     python 05-illustrations/d4_stressed_correlation.py
 """
 
-import numpy as np
+import matplotlib
 
-from common import ASSETS, MODEL_PORTFOLIOS, TRADING_DAYS, market_returns
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+
+from common import ASSETS, MODEL_PORTFOLIOS, TRADING_DAYS, market_returns, save  # noqa: E402
 
 STRESSED_EQUITY_BOND = 0.5
 
@@ -43,6 +47,19 @@ def main():
           "that leans most on bonds, the 20/80, depends most on bonds behaving as they did, and\n"
           "is the one whose clients are least able to absorb the surprise. A validation should stress\n"
           "the relationships each portfolio relies on, not only replay the past.")
+    names = list(MODEL_PORTFOLIOS)
+    x = np.arange(len(names))
+    fig, ax = plt.subplots(figsize=(6, 2.8))
+    ax.bar(x - 0.2, [vol(w, cov_crisis) for w in MODEL_PORTFOLIOS.values()], 0.4, color="#3182bd",
+           label="crisis, as in the data")
+    ax.bar(x + 0.2, [vol(w, cov_stress) for w in MODEL_PORTFOLIOS.values()], 0.4, color="#d8543b",
+           label=f"crisis, hedge fails (correlation {STRESSED_EQUITY_BOND:+.1f})")
+    ax.set_xticks(x, names)
+    ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
+    ax.set_ylabel("Annualised volatility")
+    ax.legend(frameon=False)
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 'd4_stressed_correlation')}")
 
 
 if __name__ == "__main__":

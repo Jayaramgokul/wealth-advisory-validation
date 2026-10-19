@@ -165,6 +165,14 @@ reviews are cheap. In every row, novices are referred far more often than
 experienced clients. The questionnaire measures novices less reliably (F5),
 so the model is less sure about them, and the rule sends them to a human.
 The weakness in measurement shows up as a workload that can be planned for.
+
+![Cost per client against the share of clients referred, for three review costs](../05-illustrations/output/u2_refer_when_unsure.png)
+
+*Each line is one review cost: refer the clients the model is least sure
+about first, and keep going. The left edge is placing everyone. The dot is
+where the rule stops, and in each case it lands at or near the bottom of its
+curve.*
+
 [`u2_refer_when_unsure.py`](../05-illustrations/u2_refer_when_unsure.py)
 
 **Adjacent tests.**
@@ -448,6 +456,13 @@ same side of 50%. The proper scores can. The overconfident model claims
 near-certainty for 15% of clients and is wrong for about one in five of them.
 Fed into a referral rule like U2, it would wave through clients who should
 have been reviewed.
+
+![Reliability of the calibrated and overconfident models](../05-illustrations/output/u8_reliability.png)
+
+*The calibrated model's points sit on the diagonal. The overconfident
+model's points lie above it at the low end and below it at the high end: its
+predictions near 0 and 1 are too extreme.*
+
 [`u8_proper_scoring.py`](../05-illustrations/u8_proper_scoring.py)
 
 **Adjacent tests.**

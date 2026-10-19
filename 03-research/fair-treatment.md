@@ -260,6 +260,13 @@ The chi-square test confirms the rates are not all equal (p ≈ 10⁻¹²).
   disadvantage that the ratio alone would have passed.
 
 The smallest-detectable-gap column is what separates the two cases.
+
+![Favourable outcome rate by group, with intervals](../05-illustrations/output/f2_group_rates.png)
+
+*Each dot is a group's rate with its 95% interval; the red line is
+four-fifths of the highest rate. D sits clearly to the left of it. E's
+interval is so wide that it covers both D's rate and full parity.*
+
 [`f2_adverse_impact_four_fifths.py`](../05-illustrations/f2_adverse_impact_four_fifths.py)
 
 **Adjacent tests.**

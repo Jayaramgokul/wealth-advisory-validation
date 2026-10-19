@@ -10,11 +10,15 @@ is each group large enough for the test to mean anything?
     python 05-illustrations/f2_adverse_impact_four_fifths.py
 """
 
-import numpy as np
-import pandas as pd
-from scipy import stats
+import matplotlib
 
-from common import smallest_detectable_gap, wilson
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from scipy import stats  # noqa: E402
+
+from common import save, smallest_detectable_gap, wilson  # noqa: E402
 
 
 def adverse_impact(df, group="group", outcome="favourable"):
@@ -50,6 +54,16 @@ def main():
     print("\nWhat this shows: the four-fifths rule is a screen, not a verdict. Pair it with a significance\n"
           "test and intervals, and state the power: a small group that 'passes' may simply be too small to\n"
           "fail.")
+    fig, ax = plt.subplots(figsize=(6, 2.8))
+    y = np.arange(len(t))[::-1]
+    ax.errorbar(t["rate"], y, xerr=[t["rate"] - t["ci_low"], t["ci_high"] - t["rate"]], fmt="o", color="#3182bd",
+                capsize=3)
+    ax.axvline(0.8 * t["rate"].max(), color="#d8543b", lw=1.5, ls="--")
+    ax.set_yticks(y, [f"{g} ({n:,} clients)" for g, n in zip(t["group"], t["clients"])])
+    ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel("Favourable outcome (95% interval); red = 4/5 of the highest rate")
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 'f2_group_rates')}")
 
 
 if __name__ == "__main__":

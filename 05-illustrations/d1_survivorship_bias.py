@@ -10,7 +10,13 @@ funds that closed along the way are put back in?
     python 05-illustrations/d1_survivorship_bias.py
 """
 
-import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+
+from common import save  # noqa: E402
 
 FUNDS, YEARS = 400, 10
 CLOSE_BELOW = 0.85           # a fund is closed once it trails the market by 15% since launch
@@ -44,6 +50,15 @@ def main():
     print("\nWhat this shows: funds disappear because they did badly, so a universe built from today's list\n"
           "quietly drops the worst results. A backtest shown to clients should be rebuilt on the universe\n"
           "that existed at each date, and the datasheet should say how closed products were handled.")
+    fig, ax = plt.subplots(figsize=(6, 2.8))
+    years = np.arange(1, months + 1) / 12
+    for rows, label in ((survivors, "today's survivors only"), (everyone, "every fund that existed at the time")):
+        ax.plot(years, np.cumprod(1 + np.nanmean(full[rows], axis=0)), label=label)
+    ax.set_xlabel("Years")
+    ax.set_ylabel("Growth of 1 (equal-weighted)")
+    ax.legend(frameon=False)
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 'd1_survivorship')}")
 
 
 if __name__ == "__main__":

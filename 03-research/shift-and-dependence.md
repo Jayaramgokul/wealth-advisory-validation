@@ -88,6 +88,15 @@ Blocks keep volatile spells together, widen the intervals and do better. They
 still fall short, because a five-year history may contain no crisis at all,
 or one long one, and no resampling scheme can recover what the history does
 not contain. The honest report states that shortfall.
+
+![Bootstrap intervals for volatility from 60 histories, two ways](../05-illustrations/output/r1_interval_coverage.png)
+
+*The first 60 of the 200 histories, one vertical line per interval; the
+black line is the true volatility, and red intervals miss it. Single-day
+resampling (left) gives narrower intervals and more misses. Blocks (right)
+widen them and miss less often, but still more often than a 95% interval
+should.*
+
 [`r1_dependent_data.py`](../05-illustrations/r1_dependent_data.py)
 
 **Adjacent tests.**

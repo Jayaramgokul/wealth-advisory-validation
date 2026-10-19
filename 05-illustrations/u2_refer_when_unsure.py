@@ -10,10 +10,14 @@ referred, and how much harm does that avoid?
     python 05-illustrations/u2_refer_when_unsure.py
 """
 
-import numpy as np
+import matplotlib
 
-from common import answer_score, bucket, questionnaire
-from u1_cost_of_mistakes import COST, K
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+
+from common import answer_score, bucket, questionnaire, save  # noqa: E402
+from u1_cost_of_mistakes import COST, K  # noqa: E402
 
 REVIEW_COSTS = [0.4, 0.6, 0.8]       # cost of a human review, in the same units as the cost matrix
 
@@ -50,6 +54,24 @@ def main():
           "least. A refer-to-human rule, set from the cost matrix and the model's own uncertainty, puts\n"
           "review effort where it saves most harm. How many referrals are affordable is a business choice;\n"
           "the rule makes the trade-off visible.")
+    # Refer the clients the model is least sure about first, and trace the cost as the share referred grows.
+    order = np.argsort(-expected.min(1))
+    realised = COST[best, true][order]
+    n = len(order)
+    remaining = np.r_[np.cumsum(realised[::-1])[::-1], 0]               # cost of placing everyone not referred
+    fig, ax = plt.subplots(figsize=(6, 3))
+    for rc, colour in zip(REVIEW_COSTS, ("#3182bd", "#ff7f0e", "#2ca02c")):
+        ax.plot(np.arange(n + 1) / n, (rc * np.arange(n + 1) + remaining) / n, color=colour,
+                label=f"review cost {rc:.1f}")
+        m = int((expected.min(1) > rc).sum())
+        ax.plot(m / n, (rc * m + remaining[m]) / n, "o", color=colour)
+    ax.set_xlim(0, 0.8)
+    ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel("Share of clients referred (least certain first); dot = the rule's choice")
+    ax.set_ylabel("Cost per client")
+    ax.legend(frameon=False)
+    ax.spines[["top", "right"]].set_visible(False)
+    print(f"\nChart: {save(fig, 'u2_refer_when_unsure')}")
 
 
 if __name__ == "__main__":

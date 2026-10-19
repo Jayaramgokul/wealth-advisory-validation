@@ -228,6 +228,13 @@ included them; they were selected by luck in that sample. Liquid assets
 trades places with income, since the two carry much the same information.
 Telling clients their advice depends on these six factors would be partly
 untrue.
+
+![How often each factor is selected across 200 resamples](../05-illustrations/output/s3_selection_frequency.png)
+
+*Blue bars are the six factors in the one documented fit. Only income and
+horizon are selected every time. Savings rate and home ownership have no
+effect, yet each is selected in about three resamples in five.*
+
 [`s3_selection_stability.py`](../05-illustrations/s3_selection_stability.py)
 
 **Adjacent tests.**
