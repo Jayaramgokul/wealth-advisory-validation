@@ -131,6 +131,12 @@ band implies. Monte Carlo sits between the two because it keeps the
 fat-tailed days but not their clustering, which is a reminder that the
 clustering itself carries risk. The gap grows with the equity share, so the
 clients told the most about risk are told the least accurately.
+
+![One-month 99% CVaR by method for each portfolio](../05-illustrations/output/p1_tail_risk.png)
+
+*The blue bars (normal model) are the lowest for every portfolio, and the
+gap to the historical bars widens as the equity share rises.*
+
 [`p1_tail_risk_three_ways.py`](../05-illustrations/p1_tail_risk_three_ways.py)
 
 **Adjacent tests.**
@@ -215,6 +221,13 @@ they suggest that nothing can be said. The direct comparison of 85/15 with
 better risk-adjusted return, but its upper end is within 0.001 of zero. Under
 the agreed margin, the claim is fragile and would need qualifying before it
 appeared in client material.
+
+![Bootstrap distribution of the 85/15 minus 50/50 Sharpe difference](../05-illustrations/output/p2_sharpe_difference.png)
+
+*Almost all of the bootstrap differences fall to the left of the red line at
+zero, but the tail reaches just past it, which is why the claim is called
+fragile.*
+
 [`p2_sharpe_sortino_intervals.py`](../05-illustrations/p2_sharpe_sortino_intervals.py)
 
 **Adjacent tests.**
@@ -298,6 +311,13 @@ estimator does not matter for clients, with evidence. The high breach rate
 under either estimator is a separate point: it says the exposure rule itself
 lets volatility run well above the band in crises, whichever forecast feeds
 it.
+
+![Realised next-month volatility against the one-year sample and EWMA forecasts](../05-illustrations/output/p3_volatility_estimators.png)
+
+*Over the last 1,500 trading days, EWMA (orange) follows the jumps in
+realised volatility (grey) quickly; the one-year window (blue) lags them.
+Both miss the start of each spike.*
+
 [`p3_ewma_vs_sample_volatility.py`](../05-illustrations/p3_ewma_vs_sample_volatility.py)
 
 **Adjacent tests.**
@@ -383,6 +403,13 @@ income.
 **Limitation.** Reordering one history isolates the effect of order. It does
 not explore histories with different returns, so a full test would also run
 the same exercise on block-bootstrapped histories (as in P5).
+
+![85/15 wealth path with the same returns in two different orders](../05-illustrations/output/p4_sequence_of_returns.png)
+
+*The same 30 annual returns for the 85/15 portfolio: with the bad years
+first the money runs out in under ten years; with the good years first it is
+still above the starting value after 30.*
+
 [`p4_sequence_of_returns.py`](../05-illustrations/p4_sequence_of_returns.py)
 
 **Adjacent tests.**
@@ -450,6 +477,12 @@ All three portfolios pass on volatility. The 85/15 upper end, 16.8% against a
 has tail losses a third larger than its band implies. Passing on volatility
 does not settle the question of tail risk, which is why the two tests sit
 together.
+
+![Annual volatility with 95% intervals against each disclosed band](../05-illustrations/output/p5_volatility_intervals.png)
+
+*Each interval sits to the left of its red band line, but the 85/15 interval
+almost touches it.*
+
 [`p5_intervals_on_risk_metrics.py`](../05-illustrations/p5_intervals_on_risk_metrics.py)
 
 **Adjacent tests.**

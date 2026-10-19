@@ -63,6 +63,12 @@ tolerance.
 the overall suitability rate is 79%, and the worst group, older novices with
 small accounts, is at 62% (interval 57–67%). Reported alone, the 79% would
 have looked healthy.
+
+![Suitability by client group, with intervals](../05-illustrations/output/f3_intersectional.png)
+
+*The dashed line is the overall rate that would normally be reported; the
+bottom row is the worst group, which G1 would put beside it.*
+
 [`f3_worst_group_intersectional.py`](../05-illustrations/f3_worst_group_intersectional.py)
 
 **Adjacent tests.**
@@ -198,6 +204,12 @@ them sit just below the suitability line. From a cut-off of about 82 upwards,
 the order reverses: novices bear more, because their noisier answers push a
 few far above their true tolerance. The same model gives a different answer
 to "who pays for this threshold" depending only on where the line is drawn.
+
+![Share offered Band 5 when unsuitable, by cut-off, for novices and experienced clients](../05-illustrations/output/g3_threshold_sweep.png)
+
+*The orange line (experienced) is above the blue (novice) at low cut-offs;
+the two cross at around 82, after which novices bear slightly more.*
+
 [`g3_threshold_sweep.py`](../05-illustrations/g3_threshold_sweep.py)
 
 **Adjacent tests.**

@@ -369,6 +369,13 @@ simulation; a reader should not conclude that small accounts are the
 problem. Two cells of experienced clients come out significantly above
 average, which is the other side of the same pattern. Every cell has at
 least 171 clients, so none falls below the minimum of 80.
+
+![Suitability by client group, with intervals](../05-illustrations/output/f3_intersectional.png)
+
+*Each row is one cell of age, experience and account size; the dashed line
+is the overall rate. The two cells of older novices sit well to the left of
+everyone else.*
+
 [`f3_worst_group_intersectional.py`](../05-illustrations/f3_worst_group_intersectional.py)
 
 **Adjacent tests.**
